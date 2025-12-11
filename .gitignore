@@ -1,0 +1,9 @@
+# Ignore build artifacts and IDE files
+*.exe
+*.obj
+*.o
+/build/
+/bin/
+/out/
+.vs/
+*.log
