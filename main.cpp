@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <fstream>
 int main(){
     // rocket parameters
     double mass = 50.0;
@@ -15,12 +15,17 @@ int main(){
     double v = 0;
     double time = 0;
 
+    std::ofstream out("sim.csv");
+    out<<"Time,Altitude,Velocity,Fuel\n";
+
     while(alt>=0){
         double dragforce = 0.5*1.225*drag*area*v*v; //drag force formula 1.225 is the density of the air
 
         if(v<0) dragforce = -dragforce; //adjust drag direction
 
         double mass = mass+fuel; //total mass
+
+        out<<time<<","<<alt<<","<<v<<","<<fuel<<"\n";
         double accel = (thrust - dragforce - mass*g)/mass; //net acceleration
 
         v = v + accel*dt; //update velocity
@@ -37,7 +42,7 @@ int main(){
         }
         time = time + dt;
     }
-
+    out.close();
     std::cout << "Rocket has landed after " << time << " seconds.\n";
 
 
