@@ -10,7 +10,7 @@ int main(){
     double drag = 0.5;
     
     double dt = 0.001;
-    double g = 0.8;
+    double g = 9.8;
     double alt = 0;
     double v = 0;
     double time = 0;
@@ -33,7 +33,10 @@ int main(){
 
         if(fuel>0){
             fuel = fuel - burnrate*dt; //update fuel
-            if(fuel<0) fuel = 0;
+            if(fuel<0) {
+                fuel = 0;
+                thrust = 0;
+            }
         } else {
             thrust = 0; //no fuel, no thrust
         }
