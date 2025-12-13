@@ -1,48 +1,79 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
+
+struct Stage{
+    double dry_mass;
+    double fuel;
+    double thrust;
+    double burn_rate;
+};
+
+Stage stage1 = {0.05, 0.02, 10, 0.01};
+Stage stage2 = {0.03, 0.01, 100, 0.005};
+
+double airDensity(double altitude){
+    //simplified model: decrease density with altitude
+    return 1.225 * std::exp(-altitude/8500.0); //scale height of atmosphere ~8500m
+};
+
 int main(){
-    // rocket parameters
-    double mass = 50.0;
-    double fuel = 20.0;
-    double thrust = 200.0;
-    double burnrate = 1;
-    double area = 0.1;
-    double drag = 0.5;
-    
-    double dt = 0.001;
-    double g = 9.8;
+
+    double dt = 0.01;
+    double g = 9.81;
     double alt = 0;
     double v = 0;
     double time = 0;
 
+    //Model Rocket Parameters 
+    double area = 0.00113; //m^2
+    double dragcoeff = 0.75;
+    
+
+    Stage stages[2] = {stage1, stage2};
+    int currentStage = 0;
+
     std::ofstream out("sim.csv");
-    out<<"Time,Altitude,Velocity,Fuel\n";
+    out<<"Time,Altitude,Velocity,Fuel,Stage\n";
 
-    while(alt>=0){
-        double dragforce = 0.5*1.225*drag*area*v*v; //drag force formula 1.225 is the density of the air
+    while(true){
+        if(alt<=0 && time >2.0) break; 
 
+
+        double rho = airDensity(alt); //air density at current altitude
+        double dragforce = 0.5*rho*dragcoeff*area*v*v; //drag force formula 1.225 is the density of the air
+
+        Stage& stage = stages[currentStage];
         if(v<0) dragforce = -dragforce; //adjust drag direction
 
-        double mass = mass+fuel; //total mass
+        double currentmass;
+        if (currentStage == 0) {
+            currentmass = stages[0].dry_mass + stages[0].fuel
+                       + stages[1].dry_mass + stages[1].fuel;
+        } else {
+            currentmass= stages[1].dry_mass + stages[1].fuel;
+        }
 
-        out<<time<<","<<alt<<","<<v<<","<<fuel<<"\n";
-        double accel = (thrust - dragforce - mass*g)/mass; //net acceleration
+        double thrust = (stage.fuel>0) ? stage.thrust : 0; //thrust only if fuel remains
+
+        
+        double accel = (thrust - dragforce - currentmass*g)/currentmass; //net acceleration
 
         v = v + accel*dt; //update velocity
         alt = alt + v*dt; //update altitude
 
-        if(fuel>0){
-            fuel = fuel - burnrate*dt; //update fuel
-            if(fuel<0) {
-                fuel = 0;
-                thrust = 0;
+        if(stage.fuel>0){
+            stage.fuel = stage.fuel - stage.burn_rate*dt; //update fuel
+            if(stage.fuel<0) {
+                stage.fuel = 0;
             }
-        } else {
-            thrust = 0; //no fuel, no thrust
-        }
-        if(int(time*1000)%100==0){
-            std::cout << "Time: " << time << " s, Altitude: " << alt << " m, Velocity: " << v << " m/s, Fuel: " << fuel << " kg" << std::endl;
-        }
+        } 
+        else if(currentStage<1){
+            currentStage++;
+            std::cout << "Stage 2 ignited at time " << time << " seconds.\n";
+        } 
+        
+        out<<time<<","<<alt<<","<<v<<","<<stage.fuel<< "," << currentStage+1 << "\n";
         time = time + dt;
     }
     out.close();
@@ -50,3 +81,4 @@ int main(){
 
 
 }
+
