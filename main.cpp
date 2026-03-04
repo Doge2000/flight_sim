@@ -10,7 +10,7 @@ struct Stage {
     double burn_rate;
 };
 
-Stage stage2 = {0.03, 0.01, 9.0, 0.005};
+
 
 double airDensity(double altitude) {
     return 1.225 * std::exp(-altitude / 8500.0);
@@ -18,12 +18,22 @@ double airDensity(double altitude) {
 
 int main(int argc, char* argv[]) {
     double stage1thrust = 10.0; // N
+    double stage2thrust = 10.0; // N
+    double stage1fuel = 50.0; // kg
+    double stage2fuel = 30.0; // kg
+    double stage1mass = 20.0; // kg
+    double stage2mass = 15.0; // kg
     if (argc > 1) {
         stage1thrust = std::stod(argv[1]);
+        stage2thrust = std::stod(argv[2]);
+        stage1fuel = std::stod(argv[3]);
+        stage2fuel = std::stod(argv[4]);
+        stage1mass = std::stod(argv[5]);
+        stage2mass = std::stod(argv[6]);
     }
 
-    Stage stage1 = {0.05, 0.02, stage1thrust, 0.01};
-
+    Stage stage1 = {stage1mass, stage1fuel, stage1thrust, 0.01};
+    Stage stage2 = {stage2mass, stage2fuel, stage2thrust, 0.005};
     double x = 0.0, y = 0.0;
     double vx = 0.0, vy = 0.0;
     double angle = 90.0 * M_PI / 180.0;
@@ -36,7 +46,6 @@ int main(int argc, char* argv[]) {
 
     bool chute = false;
 
-    // Rocket parameters
     double area = 0.00113; // m^2
     double dragcoeff = 0.1;
 
@@ -45,10 +54,10 @@ int main(int argc, char* argv[]) {
 
     std::ofstream out("sim.csv");
     out << std::fixed << std::setprecision(6);
-    out << "Time,X,Y,Vx,Vy,Speed,Fuel,Stage\n";
+    out << "Time,X,Y,Vx,Vy,Speed,Fuel,Mass,Angle,Stage\n";
 
     while (true) {
-        if (time > 300.0) {
+        if (time > 3600.0) {
             std::cout << "Simulation timed out\n";
             break;
         }
@@ -69,14 +78,12 @@ int main(int argc, char* argv[]) {
 
         double Cd_eff = chute?  0.5 : dragcoeff;
         double area_eff = chute? 0.1 : area;
-        if(stage.fuel>0){
-            angle -= 0.05*dt;
+        if(stage.fuel>0 && angle > M_PI/4){
+            angle -= 0.1*dt;
             if(angle < 0) angle = 0;
         }
 
-        if (stage.fuel <= 0.0) {
-            angle = M_PI / 2;
-        }
+
 
         
       
@@ -100,19 +107,17 @@ int main(int argc, char* argv[]) {
             Fy_drag = -drag_mag * (vy / v);
         }
 
-        // Thrust vector
+  
         double Fx_thrust = thrust * std::cos(angle);
         double Fy_thrust = thrust * std::sin(angle);
 
-        // Net forces
+
         double Fx = Fx_thrust + Fx_drag;
         double Fy = Fy_thrust + Fy_drag - currentmass * g;
 
-        // Accelerations
         double ax = Fx / currentmass;
         double ay = Fy / currentmass;
 
-        // Integrate velocity and position
         vx += ax * dt;
         vy += ay * dt;
         x += vx * dt;
@@ -120,22 +125,22 @@ int main(int argc, char* argv[]) {
         alt = y;
 
        
-
-        // Fuel consumption
         if (stage.fuel > 0.0) {
             stage.fuel -= stage.burn_rate * dt;
-            if (stage.fuel < 0.0) stage.fuel = 0.0;
+            if (stage.fuel < 0.0){
+                stage.fuel = 0.0;
+                std::cout << "Stage " << (currentStage+1) << " has run out of fuel at time " << time << " seconds.\n";
+            }
         } else if (currentStage < 1) {
-            // Stage separation
-            stages[0].dry_mass = 0.0; // drop stage 1 hardware
+            stages[0].dry_mass = 0.0; 
             currentStage++;
             std::cout << "Stage 2 ignited at time " << time << " seconds.\n";
         }
 
-        // Log
+      
         out << time << "," << x << "," << y << ","
             << vx << "," << vy << "," << v << ","
-            << stage.fuel << "," << (currentStage+1) << "\n";
+            << stage.fuel << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
 
         time += dt;
     }

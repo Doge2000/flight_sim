@@ -6,8 +6,8 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.widgets import Slider, Button
 
 # --- Run simulation ---
-def runsim(thrust_value):
-    subprocess.run(["sim.exe", str(thrust_value)])
+def runsim(stage1_thrust, stage2_thrust, stage1_fuel, stage2_fuel, stage1_mass, stage2_mass):
+    subprocess.run(["sim.exe", str(stage1_thrust), str(stage2_thrust), str(stage1_fuel), str(stage2_fuel), str(stage1_mass), str(stage2_mass)])
 
 def load_data():
     df = pd.read_csv("sim.csv")
@@ -23,8 +23,8 @@ def load_data():
 t = np.array([]); x = np.array([]); y = np.array([])
 vx = vy = v = np.array([])
 
-fig, (ax_sim, ax_plot) = plt.subplots(1, 2, figsize=(10, 5))
-plt.subplots_adjust(bottom=0.45)
+fig, (ax_sim, ax_plot) = plt.subplots(1, 2, figsize=(14, 7))
+plt.subplots_adjust(left=0.05, right=0.55, bottom=0.3, top=0.75, wspace=0.3)
 
 ax_sim.set_title("Rocket trajectory (X vs Y)")
 ax_plot.set_title("Altitude vs time")
@@ -39,16 +39,25 @@ trajectory, = ax_sim.plot([], [], 'r--', lw=1)
 line, = ax_plot.plot([], [], 'b-')
 
 # Controls
-ax_thrust = plt.axes([0.25, 0.25, 0.6, 0.03])
-thrust_slider = Slider(ax_thrust, 'Stage 1 Thrust (N)', 5, 20, valinit=10.0)
-
-ax_start = plt.axes([0.25, 0.15, 0.2, 0.05])
+ax_thrust1 = plt.axes([0.75, 0.25, 0.2, 0.03])
+ax_thrust2 = plt.axes([0.75, 0.2, 0.2, 0.03])
+thrust_slider1 = Slider(ax_thrust1, 'Stage 1 Thrust (N)', 1, 20, valinit=10.0)
+thrust_slider2 = Slider(ax_thrust2, 'Stage 2 Thrust (N)', 1, 20, valinit=5.0)
+ax_fuel1 = plt.axes([0.75, 0.45, 0.2, 0.03])
+ax_fuel2 = plt.axes([0.75, 0.4, 0.2, 0.03])
+fuel_slider1 = Slider(ax_fuel1, 'Stage 1 Fuel (kg)', 0.1, 0.5, valinit=1)
+fuel_slider2 = Slider(ax_fuel2, 'Stage 2 Fuel (kg)', 0.1, 0.5, valinit=0.5)
+ax_mass1 = plt.axes([0.75, 0.65, 0.2, 0.03])
+ax_mass2 = plt.axes([0.75, 0.6, 0.2, 0.03])
+mass_slider1 = Slider(ax_mass1, 'Stage 1 Dry Mass (kg)', 0.1, 1.5, valinit=0.25)
+mass_slider2 = Slider(ax_mass2, 'Stage 2 Dry Mass (kg)', 0.1, 1.5, valinit=0.15)
+ax_start = plt.axes([0.65, 0.12, 0.15, 0.05])
 start_button = Button(ax_start, 'Start')
 
-ax_pause = plt.axes([0.55, 0.15, 0.2, 0.05])
+ax_pause = plt.axes([0.82, 0.12, 0.15, 0.05])
 pause_button = Button(ax_pause, 'Pause/Resume')
 
-ax_reset = plt.axes([0.4, 0.05, 0.2, 0.05])
+ax_reset = plt.axes([0.73, 0.05, 0.15, 0.05])
 reset_button = Button(ax_reset, 'Reset')
 
 # Animation state
@@ -75,7 +84,7 @@ def start_animation(event):
     if started: return
     started = True
 
-    runsim(thrust_slider.val)
+    runsim(thrust_slider1.val, thrust_slider2.val, fuel_slider1.val, fuel_slider2.val, mass_slider1.val, mass_slider2.val)
     t, x, y, vx, vy, v = load_data()
     frames_count = len(t)
 
@@ -88,8 +97,8 @@ def start_animation(event):
 
     init()
     anim = FuncAnimation(fig, update, init_func=init,
-                         frames=range(0, frames_count, 20), interval=0.5, blit=True,
-                         repeat=False)  # faster, no restart
+                         frames=range(0, frames_count, 50), interval=0.5, blit=True,
+                         repeat=False) 
     fig.canvas.draw_idle()
 
 def pause_resume(event):
