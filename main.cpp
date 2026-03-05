@@ -3,6 +3,12 @@
 #include <cmath>
 #include <iomanip>
 
+const double S_ref = 0.00113; 
+const double CL_alpha = 2*M_PI;
+const double CD0 = 0.2;
+const double k_ind = 0.1;
+
+
 struct Stage {
     double dry_mass;
     double fuel;
@@ -10,19 +16,53 @@ struct Stage {
     double burn_rate;
 };
 
+struct PID{
+    double kp;
+    double ki;
+    double kd;
+    double integral = 0.0;
+    double prev_error = 0.0;
+
+    double update(double error, double dt) {
+        integral += error * dt;
+        double derivative = (error - prev_error) / dt;
+        prev_error = error;
+        return kp * error + ki * integral + kd * derivative;
+    }
+};
+
 
 
 double airDensity(double altitude) {
-    return 1.225 * std::exp(-altitude / 8500.0);
+    const double rho0 = 1.225;
+    const double H = 8500.0;
+    return rho0 * std::exp(-altitude / H);
 }
 
+double angleattack(double theta, double vx, double vy) {
+    double v = std::sqrt(vx*vx + vy*vy)+1e-9;
+    double alpha = std::atan2(vy, vx);
+    return theta - alpha;
+}
+
+double pitchProgram(double t){
+        if(t<2) return M_PI/2;
+        if(t<20){
+            double frac = (t-2)/18.0;
+            return M_PI/2+frac*(20*M_PI/180.0 - M_PI/2);
+        }
+        return 20*M_PI/180.0;
+    }
+
 int main(int argc, char* argv[]) {
-    double stage1thrust = 10.0; // N
-    double stage2thrust = 10.0; // N
-    double stage1fuel = 50.0; // kg
-    double stage2fuel = 30.0; // kg
-    double stage1mass = 20.0; // kg
-    double stage2mass = 15.0; // kg
+    double stage1thrust = 0.0; 
+    double stage2thrust = 0.0; 
+    double stage1fuel = 0.0; 
+    double stage2fuel = 0.0; 
+    double stage1mass = 0.0; 
+    double stage2mass = 0.0; 
+
+    PID pid = {0.3, 0.0, 1.5};
     if (argc > 1) {
         stage1thrust = std::stod(argv[1]);
         stage2thrust = std::stod(argv[2]);
@@ -56,6 +96,9 @@ int main(int argc, char* argv[]) {
     out << std::fixed << std::setprecision(6);
     out << "Time,X,Y,Vx,Vy,Speed,Fuel,Mass,Angle,Stage\n";
 
+
+    
+
     while (true) {
         if (time > 3600.0) {
             std::cout << "Simulation timed out\n";
@@ -78,14 +121,20 @@ int main(int argc, char* argv[]) {
 
         double Cd_eff = chute?  0.5 : dragcoeff;
         double area_eff = chute? 0.1 : area;
-        if(stage.fuel>0 && angle > M_PI/4){
-            angle -= 0.1*dt;
-            if(angle < 0) angle = 0;
-        }
-
-
-
         
+        double gamma = std::atan2(vy, vx);
+
+        double gamma_target = pitchProgram(time);
+        double error = gamma_target - gamma;
+
+        double update = pid.update(error, dt);
+        angle = gamma + update;
+
+        double maxgimbal = 10*M_PI/180.0;
+        double delta = angle - gamma;
+
+        if(delta> maxgimbal) angle = gamma + maxgimbal;
+        if(delta<-maxgimbal) angle = gamma - maxgimbal;        
       
         double currentmass;
         if (currentStage == 0) {
@@ -100,20 +149,30 @@ int main(int argc, char* argv[]) {
          v = std::sqrt(vx*vx + vy*vy);
      
         double rho = airDensity(y);
-        double Fx_drag = 0.0, Fy_drag = 0.0;
-        double drag_mag = 0.5 * rho * Cd_eff * area_eff * v * v;
-        if (v > 1e-9) {
-            Fx_drag = -drag_mag * (vx / v);
-            Fy_drag = -drag_mag * (vy / v);
-        }
+        double alpha = angleattack(angle, vx, vy);
+        double q = 0.5 * rho * v * v;
+        double CL = CL_alpha * alpha;
+        double CD = CD0 + k_ind * CL * CL;
+
+        double L = q*CL*S_ref;
+        double D = q*CD*S_ref;
+
+        double ex = vx/v;
+        double ey = vy/v;
+
+        double Fx_drag = -D*ex;
+        double Fy_drag = -D*ey;
+
+        double Fx_lift = L*ey;
+        double Fy_lift = -L*ex;
 
   
         double Fx_thrust = thrust * std::cos(angle);
         double Fy_thrust = thrust * std::sin(angle);
 
+        double Fx = Fx_thrust + Fx_drag + Fx_lift;
+        double Fy = Fy_thrust + Fy_drag + Fy_lift - currentmass * g;
 
-        double Fx = Fx_thrust + Fx_drag;
-        double Fy = Fy_thrust + Fy_drag - currentmass * g;
 
         double ax = Fx / currentmass;
         double ay = Fy / currentmass;
@@ -123,6 +182,7 @@ int main(int argc, char* argv[]) {
         x += vx * dt;
         y += vy * dt;
         alt = y;
+        
 
        
         if (stage.fuel > 0.0) {
