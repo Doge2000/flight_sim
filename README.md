@@ -10,7 +10,7 @@ with trajectory data visualized using Python/matplotlib.
 - Parachute deployment at apogee
 
 ## How to Run
-1. Compile: `g++ main.cpp -o sim`
+1. Compile: `g++ main.cpp -o sim.exe`
 2. Run: `./sim`
 3. Visualize: `python plot.py`
 
