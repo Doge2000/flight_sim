@@ -1,15 +1,18 @@
-**FLIGHT SIM OVERVIEW** -
+# Rocket Flight Simulator
 
-This is just a fun little project I decided to take on to combine my passion for computer science and aerospace. It's currently still a WIP.
+A physics-based rocket flight simulator built in C++ that models real-world flight dynamics, 
+with trajectory data visualized using Python/matplotlib.
 
-The end goal is to create a product that is practical and interactive.
+## Physics Model
+- Thrust curves and mass flow rate
+- Drag force with configurable Cd
+- X/Y velocity and acceleration components
+- Parachute deployment at apogee
 
-Some things I have considered in the making of this project:
-- Drag Force
-- Dry and Fuel Mass
-- X and Y components of velocity and acceleration
-- Parachute deployment
+## How to Run
+1. Compile: `g++ main.cpp -o sim`
+2. Run: `./sim`
+3. Visualize: `python plot.py`
 
-Things to do in the future:
-- Implement some graphics
-- Have it reach low-earth orbit
+## Output
+[screenshot of your graph here]
