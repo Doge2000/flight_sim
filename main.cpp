@@ -59,12 +59,25 @@ double pitchProgram(double t){
     }
 
 int main(int argc, char* argv[]) {
-    double stage1thrust = 0.0; 
-    double stage2thrust = 0.0; 
-    double stage1fuel = 0.0; 
-    double stage2fuel = 0.0; 
-    double stage1mass = 0.0; 
-    double stage2mass = 0.0; 
+
+    std::ifstream infile("C:\\Users\\JadeL\\flight_sim\\config.txt");
+   
+    if (!infile.is_open()) {
+        std::cerr <<"Error: Could not open config.txt. Please ensure the file exists and is in the correct location.\n";
+        return 1;
+    }
+    double stage1thrust = 0.0;
+    double stage2thrust = 0.0;
+    double stage1fuel = 0.0;
+    double stage2fuel = 0.0;
+    double stage1mass = 0.0;
+    double stage2mass = 0.0;
+
+    infile >> stage1thrust >> stage2thrust >> stage1fuel >> stage2fuel >> stage1mass >> stage2mass;
+    infile.close();
+
+
+    // std::cout << stage1thrust << "," << stage2thrust << "," << stage1fuel << "," << stage2fuel << "," << stage1mass << "," << stage2mass << "\n";
 
     PID pid = {3.0, 0.0, 1.5};
     if (argc > 1) {
@@ -78,8 +91,8 @@ int main(int argc, char* argv[]) {
 
     Stage stage1 = {stage1mass, stage1fuel, stage1thrust, 0.01};
     Stage stage2 = {stage2mass, stage2fuel, stage2thrust, 0.005};
-    double x = 0.0, y = 0.0;
-    double vx = 0.0, vy = 0.0;
+    double x = 1e-6, y = 1e-6;
+    double vx = 1e-6, vy = 1e-6;
     double angle = 90.0 * M_PI / 180.0;
 
     double dt = 0.01;
@@ -99,9 +112,6 @@ int main(int argc, char* argv[]) {
     std::ofstream out("sim.csv");
     out << std::fixed << std::setprecision(6);
     out << "Time,X,Y,Vx,Vy,Speed,Fuel,Mass,Angle,Stage\n";
-
-
-    
 
     while (true) {
         if (time > 3600.0) {
