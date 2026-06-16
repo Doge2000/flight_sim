@@ -1,7 +1,11 @@
+#define _USE_MATH_DEFINES
 #include <iostream>
 #include <fstream>
 #include <cmath>
 #include <iomanip>
+#include <stack>
+#include <string> 
+
 
 const double S_ref = 0.00113; 
 const double CL_alpha = 2*M_PI;
@@ -62,7 +66,7 @@ int main(int argc, char* argv[]) {
     double stage1mass = 0.0; 
     double stage2mass = 0.0; 
 
-    PID pid = {0.3, 0.0, 1.5};
+    PID pid = {3.0, 0.0, 1.5};
     if (argc > 1) {
         stage1thrust = std::stod(argv[1]);
         stage2thrust = std::stod(argv[2]);
@@ -119,8 +123,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Parachute deployed at time " << time << " seconds.\n";
         }
 
-        double Cd_eff = chute?  0.5 : dragcoeff;
-        double area_eff = chute? 0.1 : area;
+        double Cd_eff = chute?  0.5 : CD0;
+        double area_eff = chute? 0.1 : S_ref;
         
         double gamma = std::atan2(vy, vx);
 
@@ -152,10 +156,10 @@ int main(int argc, char* argv[]) {
         double alpha = angleattack(angle, vx, vy);
         double q = 0.5 * rho * v * v;
         double CL = CL_alpha * alpha;
-        double CD = CD0 + k_ind * CL * CL;
+        double CD = Cd_eff + k_ind * CL * CL;
 
-        double L = q*CL*S_ref;
-        double D = q*CD*S_ref;
+        double L = q*CL*area_eff;
+        double D = q*CD*area_eff;
 
         double ex = vx/v;
         double ey = vy/v;
@@ -163,8 +167,8 @@ int main(int argc, char* argv[]) {
         double Fx_drag = -D*ex;
         double Fy_drag = -D*ey;
 
-        double Fx_lift = L*ey;
-        double Fy_lift = -L*ex;
+        double Fx_lift = -L*ey;
+        double Fy_lift = L*ex;
 
   
         double Fx_thrust = thrust * std::cos(angle);
