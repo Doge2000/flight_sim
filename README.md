@@ -15,4 +15,5 @@ with trajectory data visualized using Python/matplotlib.
 3. Visualize: `python plot.py`
 
 ## Output
-[screenshot of your graph here]
+<img width="1400" height="700" alt="sim graph" src="https://github.com/user-attachments/assets/eea352c7-26dc-4b6c-bfe7-e605572eceb9" />
+
