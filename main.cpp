@@ -5,13 +5,7 @@
 #include <iomanip>
 #include <stack>
 #include <string> 
-
-
-const double S_ref = 0.00113; 
-const double CL_alpha = 2*M_PI;
-const double CD0 = 0.2;
-const double k_ind = 0.1;
-
+#include <vector>
 
 struct Stage {
     double dry_mass;
@@ -20,43 +14,43 @@ struct Stage {
     double burn_rate;
 };
 
-struct PID{
-    double kp;
-    double ki;
-    double kd;
-    double integral = 0.0;
-    double prev_error = 0.0;
+// struct PID{
+//     double kp;
+//     double ki;
+//     double kd;
+//     double integral = 0.0;
+//     double prev_error = 0.0;
 
-    double update(double error, double dt) {
-        integral += error * dt;
-        double derivative = (error - prev_error) / dt;
-        prev_error = error;
-        return kp * error + ki * integral + kd * derivative;
-    }
-};
+//     double update(double error, double dt) {
+//         integral += error * dt;
+//         double derivative = (error - prev_error) / dt;
+//         prev_error = error;
+//         return kp * error + ki * integral + kd * derivative;
+//     }
+// };
 
 
 
-double airDensity(double altitude) {
-    const double rho0 = 1.225;
-    const double H = 8500.0;
-    return rho0 * std::exp(-altitude / H);
-}
+// double airDensity(double altitude) {
+//     const double rho0 = 1.225;
+//     const double H = 8500.0;
+//     return rho0 * std::exp(-altitude / H);
+// }
 
-double angleattack(double theta, double vx, double vy) {
-    double v = std::sqrt(vx*vx + vy*vy)+1e-9;
-    double alpha = std::atan2(vy, vx);
-    return theta - alpha;
-}
+// double angleattack(double theta, double vx, double vy) {
+//     double v = std::sqrt(vx*vx + vy*vy)+1e-9;
+//     double alpha = std::atan2(vy, vx);
+//     return theta - alpha;
+// }
 
-double pitchProgram(double t){
-        if(t<2) return M_PI/2;
-        if(t<20){
-            double frac = (t-2)/18.0;
-            return M_PI/2+frac*(20*M_PI/180.0 - M_PI/2);
-        }
-        return 20*M_PI/180.0;
-    }
+// double pitchProgram(double t){
+//         if(t<2) return M_PI/2;
+//         if(t<20){
+//             double frac = (t-2)/18.0;
+//             return M_PI/2+frac*(20*M_PI/180.0 - M_PI/2);
+//         }
+//         return 20*M_PI/180.0;
+//     }
 
 int main(int argc, char* argv[]) {
 
@@ -79,21 +73,22 @@ int main(int argc, char* argv[]) {
 
     // std::cout << stage1thrust << "," << stage2thrust << "," << stage1fuel << "," << stage2fuel << "," << stage1mass << "," << stage2mass << "\n";
 
-    PID pid = {3.0, 0.0, 1.5};
-    if (argc > 1) {
-        stage1thrust = std::stod(argv[1]);
-        stage2thrust = std::stod(argv[2]);
-        stage1fuel = std::stod(argv[3]);
-        stage2fuel = std::stod(argv[4]);
-        stage1mass = std::stod(argv[5]);
-        stage2mass = std::stod(argv[6]);
-    }
+    // PID pid = {3.0, 0.0, 1.5};
+   if(argc >1 ){
+    stage1thrust = std::stod(argv[1]);
+    stage2thrust = std::stod(argv[2]);
+    stage1fuel = std::stod(argv[3]);
+    stage2fuel = std::stod(argv[4]);
+    stage1mass = std::stod(argv[5]);
+    stage2mass = std::stod(argv[6]);
+   }
+    
 
     Stage stage1 = {stage1mass, stage1fuel, stage1thrust, 0.01};
     Stage stage2 = {stage2mass, stage2fuel, stage2thrust, 0.005};
     double x = 1e-6, y = 1e-6;
     double vx = 1e-6, vy = 1e-6;
-    double angle = 90.0 * M_PI / 180.0;
+    double angle = M_PI / 2; // straight up
 
     double dt = 0.01;
     double g = 9.81;
@@ -104,17 +99,21 @@ int main(int argc, char* argv[]) {
     bool chute = false;
 
     double area = 0.00113; // m^2
-    double dragcoeff = 0.1;
+    double dragcoeff = 0.5;
 
-    Stage stages[2] = {stage1, stage2};
+    std::vector<Stage> stages = {stage1, stage2};
+
+   
+
     int currentStage = 0;
 
     std::ofstream out("sim.csv");
     out << std::fixed << std::setprecision(6);
     out << "Time,X,Y,Vx,Vy,Speed,Fuel,Mass,Angle,Stage\n";
 
+
     while (true) {
-        if (time > 3600.0) {
+        if (time > 3600) {
             std::cout << "Simulation timed out\n";
             break;
         }
@@ -128,65 +127,40 @@ int main(int argc, char* argv[]) {
 
         Stage& stage = stages[currentStage];
 
-        if(vy<0 && y<200.0 && !chute){
+        if(vy<0 && y<=200.0 && !chute){
             chute = true;
             std::cout << "Parachute deployed at time " << time << " seconds.\n";
         }
 
-        double Cd_eff = chute?  0.5 : CD0;
-        double area_eff = chute? 0.1 : S_ref;
-        
-        double gamma = std::atan2(vy, vx);
+        double currentmass = 0;
+        for(int i=0; i<stages.size(); i++){
+            currentmass += stages[i].dry_mass + stages[i].fuel;
+        }
+        double airdensity = 1.225;
+        double Fdragnochute = 0.5 * airdensity * vy * vy * area * dragcoeff;
+        double Fdragwchute = 0.5 * airdensity * vy * vy * 0.46 * 1.5; //about what a parachute drag coef would be 
+        double currentdrag = chute ? Fdragwchute : Fdragnochute;
 
-        double gamma_target = pitchProgram(time);
-        double error = gamma_target - gamma;
-
-        double update = pid.update(error, dt);
-        angle = gamma + update;
-
-        double maxgimbal = 10*M_PI/180.0;
-        double delta = angle - gamma;
-
-        if(delta> maxgimbal) angle = gamma + maxgimbal;
-        if(delta<-maxgimbal) angle = gamma - maxgimbal;        
-      
-        double currentmass;
-        if (currentStage == 0) {
-            currentmass = stages[0].dry_mass + stages[0].fuel
-                        + stages[1].dry_mass + stages[1].fuel;
-        } else {
-            currentmass = stages[1].dry_mass + stages[1].fuel;
+        double Fx = 0;
+        double Fy = 0;
+        //if theres fuel then apply thrust
+        if(stage.fuel > 0.0){
+            Fx = stage.thrust * std::cos(angle);
+            Fy = stage.thrust * std::sin(angle) - currentmass * g;
+        }
+        //other wise just gravity
+        else{
+            Fx = 0;
+            Fy = - currentmass * g;
         }
 
-        double thrust = (stage.fuel > 0.0) ? stage.thrust : 0.0;
-
-         v = std::sqrt(vx*vx + vy*vy);
-     
-        double rho = airDensity(y);
-        double alpha = angleattack(angle, vx, vy);
-        double q = 0.5 * rho * v * v;
-        double CL = CL_alpha * alpha;
-        double CD = Cd_eff + k_ind * CL * CL;
-
-        double L = q*CL*area_eff;
-        double D = q*CD*area_eff;
-
-        double ex = vx/v;
-        double ey = vy/v;
-
-        double Fx_drag = -D*ex;
-        double Fy_drag = -D*ey;
-
-        double Fx_lift = -L*ey;
-        double Fy_lift = L*ex;
-
-  
-        double Fx_thrust = thrust * std::cos(angle);
-        double Fy_thrust = thrust * std::sin(angle);
-
-        double Fx = Fx_thrust + Fx_drag + Fx_lift;
-        double Fy = Fy_thrust + Fy_drag + Fy_lift - currentmass * g;
-
+        //drag is always opposite to velocity
+        if(vy<0){
+            Fy+= currentdrag;
+        }
+        else{
+            Fy -= currentdrag;
+        }
 
         double ax = Fx / currentmass;
         double ay = Fy / currentmass;
@@ -196,17 +170,18 @@ int main(int argc, char* argv[]) {
         x += vx * dt;
         y += vy * dt;
         alt = y;
-        
-
+        v = std::sqrt(vx*vx + vy*vy);
        
         if (stage.fuel > 0.0) {
             stage.fuel -= stage.burn_rate * dt;
+            
             if (stage.fuel < 0.0){
                 stage.fuel = 0.0;
                 std::cout << "Stage " << (currentStage+1) << " has run out of fuel at time " << time << " seconds.\n";
+                
             }
-        } else if (currentStage < 1) {
-            stages[0].dry_mass = 0.0; 
+        } else if (currentStage < stages.size() - 1) {
+            stages[currentStage].dry_mass = 0.0; 
             currentStage++;
             std::cout << "Stage 2 ignited at time " << time << " seconds.\n";
         }
@@ -217,7 +192,10 @@ int main(int argc, char* argv[]) {
             << stage.fuel << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
 
         time += dt;
+        
+
     }
+   
 
     out.close();
     std::cout << "Rocket has landed after " << time << " seconds.\n";

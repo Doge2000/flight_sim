@@ -3,9 +3,9 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from matplotlib.widgets import Slider, Button
+from matplotlib.widgets import Slider, Button, TextBox
 
-# --- Run simulation ---
+
 def runsim(stage1_thrust, stage2_thrust, stage1_fuel, stage2_fuel, stage1_mass, stage2_mass):
     subprocess.run(["sim.exe", str(stage1_thrust), str(stage2_thrust), str(stage1_fuel), str(stage2_fuel), str(stage1_mass), str(stage2_mass)])
 
@@ -19,15 +19,29 @@ def load_data():
     v   = np.sqrt(vx**2 + vy**2)
     return t, x, y, vx, vy, v
 
-# --- Initial state ---
 t = np.array([]); x = np.array([]); y = np.array([])
 vx = vy = v = np.array([])
 
 fig, (ax_sim, ax_plot) = plt.subplots(1, 2, figsize=(14, 7))
 plt.subplots_adjust(left=0.05, right=0.55, bottom=0.3, top=0.75, wspace=0.3)
 
-ax_sim.set_title("Rocket trajectory (X vs Y)")
-ax_plot.set_title("Altitude vs time")
+
+thrust1inputbox = plt.axes([0.75, 0.25, 0.2, 0.03])
+thrust2inputbox = plt.axes([0.75, 0.2, 0.2, 0.03])
+fuel1inputbox = plt.axes([0.75, 0.45, 0.2, 0.03])
+fuel2inputbox = plt.axes([0.75, 0.4, 0.2, 0.03])
+mass1inputbox = plt.axes([0.75, 0.65, 0.2, 0.03])
+mass2inputbox = plt.axes([0.75, 0.6, 0.2, 0.03])
+
+thrust1 = TextBox(thrust1inputbox, "Stage 1 Thrust (N)", initial="20.0")
+thrust2 = TextBox(thrust2inputbox, "Stage 2 Thrust (N)", initial="20.0")
+fuel1 = TextBox(fuel1inputbox, "Stage 1 Fuel (kg)", initial="0.150")
+fuel2 = TextBox(fuel2inputbox, "Stage 2 Fuel (kg)", initial="0.150")
+mass1 = TextBox(mass1inputbox, "Stage 1 Dry Mass (kg)", initial="0.150")
+mass2 = TextBox(mass2inputbox, "Stage 2 Dry Mass (kg)", initial="0.150")
+
+ax_sim.set_title("Rocket Trajectory (X vs Y)")
+ax_plot.set_title("Altitude vs Time")
 ax_sim.grid(True, linestyle="--", alpha=0.4)
 ax_plot.grid(True, linestyle="--", alpha=0.4)
 
@@ -38,19 +52,6 @@ rocket, = ax_sim.plot([], [], 'ro', markersize=8)
 trajectory, = ax_sim.plot([], [], 'r--', lw=1)
 line, = ax_plot.plot([], [], 'b-')
 
-# Controls
-ax_thrust1 = plt.axes([0.75, 0.25, 0.2, 0.03])
-ax_thrust2 = plt.axes([0.75, 0.2, 0.2, 0.03])
-thrust_slider1 = Slider(ax_thrust1, 'Stage 1 Thrust (N)', 1, 80, valinit=20.0)
-thrust_slider2 = Slider(ax_thrust2, 'Stage 2 Thrust (N)', 1, 80, valinit=20.0)
-ax_fuel1 = plt.axes([0.75, 0.45, 0.2, 0.03])
-ax_fuel2 = plt.axes([0.75, 0.4, 0.2, 0.03])
-fuel_slider1 = Slider(ax_fuel1, 'Stage 1 Fuel (kg)', 0.3, 0.5, valinit=0.150)
-fuel_slider2 = Slider(ax_fuel2, 'Stage 2 Fuel (kg)', 0.3, 0.5, valinit=0.150)
-ax_mass1 = plt.axes([0.75, 0.65, 0.2, 0.03])
-ax_mass2 = plt.axes([0.75, 0.6, 0.2, 0.03])
-mass_slider1 = Slider(ax_mass1, 'Stage 1 Dry Mass (kg)', 0.03, 0.150, valinit=0.150)
-mass_slider2 = Slider(ax_mass2, 'Stage 2 Dry Mass (kg)', 0.03, 0.150, valinit=0.150)
 ax_start = plt.axes([0.65, 0.12, 0.15, 0.05])
 start_button = Button(ax_start, 'Start')
 
@@ -84,16 +85,16 @@ def start_animation(event):
     if started: return
     started = True
 
-    runsim(thrust_slider1.val, thrust_slider2.val, fuel_slider1.val, fuel_slider2.val, mass_slider1.val, mass_slider2.val)
+    runsim(float(thrust1.text), float(thrust2.text), float(fuel1.text), float(fuel2.text), float(mass1.text), float(mass2.text))
     t, x, y, vx, vy, v = load_data()
     frames_count = len(t)
 
-    ax_sim.set_xlim(min(-100, float(np.nanmin(x)) * 1.1),
-                    max(100, float(np.nanmax(x)) * 1.1))
-    ax_sim.set_ylim(0, max(150, float(np.nanmax(y)) * 1.1))
+    ax_sim.set_xlim(min(-50, float(np.nanmin(x)) * 1.1),
+                    max(50, float(np.nanmax(x)) * 1.1))
+    ax_sim.set_ylim(0, max(50, float(np.nanmax(y)) * 1.1))
     ax_plot.set_xlim(0, max(20, float(np.nanmax(t))))
-    ax_plot.set_ylim(min(-30, float(np.nanmin(y)) * 1.1),
-                     max(150, float(np.nanmax(y)) * 1.1))
+    ax_plot.set_ylim(min(0, float(np.nanmin(y)) * 1.1),
+                     max(50, float(np.nanmax(y)) * 1.1))
 
     init()
     anim = FuncAnimation(fig, update, init_func=init,
