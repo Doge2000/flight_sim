@@ -6,9 +6,6 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.widgets import Slider, Button, TextBox
 
 
-def runsim(stage1_thrust, stage2_thrust, stage1_fuel, stage2_fuel, stage1_mass, stage2_mass):
-    subprocess.run(["sim.exe", str(stage1_thrust), str(stage2_thrust), str(stage1_fuel), str(stage2_fuel), str(stage1_mass), str(stage2_mass)])
-
 def load_data():
     df = pd.read_csv("sim.csv")
     t   = df["Time"].values
@@ -19,26 +16,59 @@ def load_data():
     v   = np.sqrt(vx**2 + vy**2)
     return t, x, y, vx, vy, v
 
+def buildstageinputs(n):
+    global liststagesaxes, liststageboxes
+    for axtuple in liststagesaxes:
+        for ax in axtuple:
+            ax.remove()
+    liststagesaxes = []
+    liststageboxes = []
+    for i in range(n):
+        ybox = 0.7 - i*0.2
+        thrustax = plt.axes([0.75, ybox, 0.2, 0.03])
+        fuelax = plt.axes([0.75, ybox-0.05, 0.2, 0.03])
+        massax = plt.axes([0.75, ybox-0.1, 0.2, 0.03])
+        burntimeax = plt.axes([0.75, ybox-0.15, 0.2, 0.03])
+
+        thrustbox = TextBox(thrustax, f"Stage {i+1} Thrust", initial="20")
+        fuelbox = TextBox(fuelax, f"Stage {i+1} Fuel", initial="0.15")
+        massbox = TextBox(massax, f"Stage {i+1} Mass", initial="0.15")
+        burntimebox = TextBox(burntimeax, f"Stage {i+1} Burn Time", initial="5")
+        liststagesaxes.append((thrustax, fuelax, massax, burntimeax))
+        liststageboxes.append({"thrust": thrustbox,
+                           "fuel": fuelbox,
+                           "mass": massbox,
+                           "burntime": burntimebox})
+        fig.canvas.draw_idle()
+
+def numstagessubmit(text):
+    try:
+        n = int(text)
+        if(n>0):
+            buildstageinputs(n)
+    except ValueError:
+        pass
+
 t = np.array([]); x = np.array([]); y = np.array([])
 vx = vy = v = np.array([])
 
 fig, (ax_sim, ax_plot) = plt.subplots(1, 2, figsize=(14, 7))
 plt.subplots_adjust(left=0.05, right=0.55, bottom=0.3, top=0.75, wspace=0.3)
 
+numstagesax = plt.axes([0.75, 0.8, 0.2, 0.03])
+numberofstages = TextBox(numstagesax, "Number of Stages", initial="2")
+liststagesaxes = []
+liststageboxes = []
 
-thrust1inputbox = plt.axes([0.75, 0.25, 0.2, 0.03])
-thrust2inputbox = plt.axes([0.75, 0.2, 0.2, 0.03])
-fuel1inputbox = plt.axes([0.75, 0.45, 0.2, 0.03])
-fuel2inputbox = plt.axes([0.75, 0.4, 0.2, 0.03])
-mass1inputbox = plt.axes([0.75, 0.65, 0.2, 0.03])
-mass2inputbox = plt.axes([0.75, 0.6, 0.2, 0.03])
 
-thrust1 = TextBox(thrust1inputbox, "Stage 1 Thrust (N)", initial="20.0")
-thrust2 = TextBox(thrust2inputbox, "Stage 2 Thrust (N)", initial="20.0")
-fuel1 = TextBox(fuel1inputbox, "Stage 1 Fuel (kg)", initial="0.150")
-fuel2 = TextBox(fuel2inputbox, "Stage 2 Fuel (kg)", initial="0.150")
-mass1 = TextBox(mass1inputbox, "Stage 1 Dry Mass (kg)", initial="0.150")
-mass2 = TextBox(mass2inputbox, "Stage 2 Dry Mass (kg)", initial="0.150")
+numberofstages.on_submit(numstagessubmit)
+buildstageinputs(int(numberofstages.text))
+
+def runsim(numberofstages, liststagesboxes):
+    args = ["sim.exe", str(numberofstages)]
+    for box in liststagesboxes:
+        args+=[box["thrust"].text, box["fuel"].text, box["mass"].text, box["burntime"].text]
+    subprocess.run(args)
 
 ax_sim.set_title("Rocket Trajectory (X vs Y)")
 ax_plot.set_title("Altitude vs Time")
@@ -85,7 +115,7 @@ def start_animation(event):
     if started: return
     started = True
 
-    runsim(float(thrust1.text), float(thrust2.text), float(fuel1.text), float(fuel2.text), float(mass1.text), float(mass2.text))
+    runsim(int(numberofstages.text), liststageboxes)
     t, x, y, vx, vy, v = load_data()
     frames_count = len(t)
 
