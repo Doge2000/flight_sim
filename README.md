@@ -1,7 +1,6 @@
 # Rocket Flight Simulator
 
-A physics-based rocket flight simulator built in C++ that models real-world flight dynamics, 
-with trajectory data visualized using Python/matplotlib.
+A physics-based two-stage rocket simulator modeling real thrust curves, drag coefficients, and parachute deployment, with a live matplotlib GUI for interactive flight configuration.
 
 ## Physics Model
 - Thrust curves and mass flow rate
@@ -15,6 +14,4 @@ with trajectory data visualized using Python/matplotlib.
 3. Visualize: `python plot.py`
 
 ## Output
-<img width="1920" height="967" alt="Figure_1" src="https://github.com/user-attachments/assets/7fa2e66d-c060-4bca-8aba-957d0457e7f6" />
-
-
+![alt text](0624.gif)
