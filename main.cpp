@@ -15,6 +15,7 @@ struct Stage {
 };
 
 
+
 int main(int argc, char* argv[]) {
 
     int numstages = std::stoi(argv[1]);
@@ -68,6 +69,10 @@ int main(int argc, char* argv[]) {
             y = 0.0;
             vy = 0.0;
             break;
+        }
+
+        if(time>3){
+            angle-= 0.01*M_PI/180; //pitch program
         }
 
 
