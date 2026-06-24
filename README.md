@@ -7,7 +7,7 @@ with trajectory data visualized using Python/matplotlib.
 - Thrust curves and mass flow rate
 - Drag force with configurable Cd
 - X/Y velocity and acceleration components
-- Parachute deployment at apogee
+- Parachute deployment at 200 meters
 
 ## How to Run
 1. Compile: `g++ main.cpp -o sim.exe`
