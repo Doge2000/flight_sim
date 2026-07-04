@@ -5,9 +5,9 @@ Comes with two interfaces: a legacy matplotlib GUI and a live web-based telemetr
 
 # Demos 
 - Legacy
-(0624.gif)
+![alt text](0624.gif)
 - Web-based
-(webbased.gif)
+![alt text](webbased.gif)
 
 ## Features
 - Multi-stage separation with configurable thrust, fuel mass, dry mass, and burn time per stage
