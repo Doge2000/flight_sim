@@ -3,7 +3,11 @@
 A physics-based multi-stage rocket simulator modeling thrust curves, drag, and parachute deployment.
 Comes with two interfaces: a legacy matplotlib GUI and a live web-based telemetry dashboard.
 
-![Simulation Demo](0624.gif)
+# Demos 
+- Legacy
+(0624.gif)
+- Web-based
+(webbased.gif)
 
 ## Features
 - Multi-stage separation with configurable thrust, fuel mass, dry mass, and burn time per stage
