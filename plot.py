@@ -128,7 +128,7 @@ def start_animation(event):
 
     init()
     anim = FuncAnimation(fig, update, init_func=init,
-                         frames=range(0, frames_count, 50), interval=0.5, blit=True,
+                         frames=range(0, frames_count, 20), interval=50, blit=True,
                          repeat=False) 
     fig.canvas.draw_idle()
 

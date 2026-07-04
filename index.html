@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div id="Altitude"></div>
+    <div id="Velocity"></div>
+    <div id="trajectory"></div>
+    <label>No. of Stages:</label><input type = "number" id = "stages" value = "2" min = "1" max = "3"
+    onchange = "buildinputs(parseInt(this.value))">
+    
+    <div id = "inputs"></div>
+    <button id = "stbutton" onclick="startSimulation()" disabled>Start</button>
+    <button id = "resetbutton" onclick="resetSimulation()">Reset</button>
+
+    <script>
+        let ws;
+        
+        function connect(){
+            ws = new WebSocket("ws://localhost:8000/ws");
+            ws.onopen = () => {
+                document.getElementById("stbutton").removeAttribute("disabled");
+            };
+            ws.onclose = () => {
+                document.getElementById("stbutton").setAttribute("disabled", "true");
+            };
+
+            ws.onmessage = (event) => {
+                const parts = event.data.split(",");
+                if(parts.length < 5) return;
+                const[time, x, y, vx, vy] = parts.map(Number);
+                document.getElementById("Altitude").textContent = y.toFixed(1)+" m";
+                document.getElementById("Velocity").textContent = Math.sqrt(vx*vx + vy*vy).toFixed(1)+" m/s";
+
+                Plotly.extendTraces("trajectory", {
+                    x:[[x]], y:[[y]]},  [0]
+                );
+            }
+
+        }
+
+
+        function buildinputs(n){
+            const container = document.getElementById("inputs");
+            container.innerHTML = "";
+
+            for(let i = 1; i <= n; i++){
+                const stageDiv = document.createElement("div");
+                stageDiv.innerHTML = `
+                    <h3>Stage ${i}</h3>
+                    <label>Thrust (N): <input type="number" id="thrust${i}" value="20"></label><br>
+                    <label>Fuel Mass (kg): <input type="number" id="fuel${i}" value="0.15"></label><br>
+                    <label>Dry Mass (kg): <input type="number" id="mass${i}" value="0.15"></label><br>
+                    <label>Burn Time (s): <input type="number" id="burn${i}" value="5"></label><br>
+                `;
+                container.appendChild(stageDiv);
+            }
+        }
+
+        function startSimulation() {
+            const n = parseInt(document.getElementById("stages").value);
+            const args = [String(n)];
+            for (let i = 1; i <= n; i++) {
+                const thrust = document.getElementById(`thrust${i}`).value;
+                const fuel = document.getElementById(`fuel${i}`).value;
+                const mass = document.getElementById(`mass${i}`).value;
+                const burn = document.getElementById(`burn${i}`).value;
+                args.push(thrust, fuel, mass, burn);
+            }
+            ws.send(JSON.stringify({ args }));
+        }
+
+        function resetSimulation() {
+            ws.close();
+            connect();
+            Plotly.newPlot("trajectory", 
+                [{x: [], y:[], mode: "lines", type: "scatter"}],
+                {
+                    title: "Rocket Trajectory",
+                    xaxis: {title: "X Position (m)"},
+                    yaxis: {title: "Y Position (m)"}
+                }
+            );
+            document.getElementById("Altitude").textContent = "";
+            document.getElementById("Velocity").textContent = "";
+        }
+
+        buildinputs(2);
+        connect();
+
+        Plotly.newPlot("trajectory", 
+                [{x: [], y:[], mode: "lines", type: "scatter"}],
+                {
+                    title: "Rocket Trajectory",
+                    xaxis: {title: "X Position (m)"},
+                    yaxis: {title: "Y Position (m)"}
+                }
+            );
+       
+
+    </script>
+</body>
+</html>
+
+

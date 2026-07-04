@@ -54,17 +54,8 @@ int main(int argc, char* argv[]) {
 
     int currentStage = 0;
 
-    std::ofstream out("sim.csv");
-    out << std::fixed << std::setprecision(6);
-    out << "Time,X,Y,Vx,Vy,Speed,Fuel,Mass,Angle,Stage\n";
-
 
     while (true) {
-        if (time > 3600) {
-            std::cout << "Simulation timed out\n";
-            break;
-        }
-
         if (y <= 0.0 && time > 2.0) {
             y = 0.0;
             vy = 0.0;
@@ -75,6 +66,10 @@ int main(int argc, char* argv[]) {
             angle-= 0.01*M_PI/180; //pitch program
         }
 
+
+        if(vy==0 && time>2.0){
+            std:: cout << "Apogee reached at time " << time << " seconds, altitude: " << y << " meters.\n";
+        }
 
         Stage& stage = stages[currentStage];
 
@@ -138,16 +133,14 @@ int main(int argc, char* argv[]) {
         }
 
       
-        out << time << "," << x << "," << y << ","
+        std::cout << time << "," << x << "," << y << ","
             << vx << "," << vy << "," << v << ","
             << stage.fuel << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
-
+        std::cout.flush();
         time += dt;
         
 
     }
    
-
-    out.close();
     std::cout << "Rocket has landed after " << time << " seconds.\n";
 }
