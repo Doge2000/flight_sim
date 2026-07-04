@@ -1,22 +1,398 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --nasa-blue: #0066CC;
+            --nasa-red: #D21034;
+            --nasa-white: #FFFFFF;
+            --nasa-light: #f8f9fa;
+            --nasa-dark: #212529;
+            --nasa-gray: #6c757d;
+            --nasa-bg: #f8f9fa;
+            --panel-bg: rgba(255,255,255,0.8);
+            --panel-border: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--nasa-bg);
+            color: var(--nasa-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+            border-bottom: 1px solid var(--nasa-gray);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-family: 'NASA', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 2.8rem;
+            margin: 0;
+            background: linear-gradient(to right, #004c99, var(--nasa-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: var(--nasa-gray);
+            font-size: 1.1rem;
+            margin-top: 10px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .container {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 260px 1fr 340px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .panel h2 {
+            color: var(--nasa-dark);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel h2::before {
+            content: "▶";
+            font-size: 0.9em;
+            opacity: 0.7;
+            color: var(--nasa-dark);
+        }
+
+        .telemetry-panel {
+            max-width: 260px;
+        }
+
+        .telemetry-item {
+            margin-bottom: 20px;
+        }
+
+        .telemetry-label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--nasa-gray);
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .telemetry-value {
+            font-size: 1.6rem;
+            font-weight: 600;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--nasa-blue);
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .telemetry-value::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0,102,204,0.2),
+                transparent
+            );
+            transition: left 0.5s;
+        }
+
+        .telemetry-value:hover {
+            background: rgba(0,102,204,0.1);
+            transform: translateX(4px);
+        }
+
+        .telemetry-value.updating {
+            background: rgba(0,102,204,0.15);
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(0,102,204,0.3);
+        }
+
+        .telemetry-value.updating::before {
+            left: 100%;
+        }
+
+        .config-panel {
+            max-width: 340px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--nasa-dark);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.05);
+            border: 1px solid var(--nasa-gray);
+            border-radius: 6px;
+            color: var(--nasa-dark);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--nasa-blue);
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.2);
+            background: rgba(0,0,0,0.08);
+        }
+
+        .form-group input[type="number"]::placeholder {
+            color: var(--nasa-gray);
+            opacity: 1;
+        }
+
+        .stage-group {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--nasa-gray);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--nasa-gray);
+        }
+
+        .stage-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--nasa-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--nasa-blue);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            background: var(--nasa-blue);
+            border: none;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background: #0052a3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            background: #cccccc;
+        }
+
+        #stbutton[disabled] {
+            background: #cccccc;
+        }
+
+        .graph-panel {
+            min-height: 400px;
+        }
+
+        /* Plotly customization */
+        .js-plotly-plot .plotly .main-svg {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .js-plotly-plot .plotly .legend {
+            background: rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .js-plotly-plot .plotly .hovertext {
+            background: rgba(0, 0, 0, 0.8) !important;
+            border: 1px solid rgba(11, 61, 145, 0.5) !important;
+            border-radius: 4px !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2.2rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .telemetry-panel {
+                max-width: 100%;
+            }
+
+            .config-panel {
+                max-width: 100%;
+            }
+        }
+
+        /* Print styles for documentation */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .panel {
+                background: white !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+            }
+
+            .header h1 {
+                -webkit-text-fill-color: black !important;
+                background: none !important;
+                -webkit-background-clip: initial !important;
+                background-clip: initial !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="Altitude"></div>
-    <div id="Velocity"></div>
-    <div id="trajectory"></div>
-    <label>No. of Stages:</label><input type = "number" id = "stages" value = "2" min = "1" max = "3"
-    onchange = "buildinputs(parseInt(this.value))">
-    
-    <div id = "inputs"></div>
-    <button id = "stbutton" onclick="startSimulation()" disabled>Start</button>
-    <button id = "resetbutton" onclick="resetSimulation()">Reset</button>
+    <div class="header">
+        <h1>Telemetry Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <div class="panel telemetry-panel">
+            <h2>Telemetry</h2>
+            <div class="telemetry-item">
+                <div class="telemetry-label">Altitude</div>
+                <div id="Altitude" class="telemetry-value">--.-- m</div>
+            </div>
+            <div class="telemetry-item">
+                <div class="telemetry-label">Velocity</div>
+                <div id="Velocity" class="telemetry-value">--.-- m/s</div>
+            </div>
+            <div class="telemetry-item">
+                <div class="telemetry-label">G-Force</div>
+                <div id="GForce" class="telemetry-value">--.xx g</div>
+            </div>
+        </div>
+
+        <div class="panel graph-panel">
+            <h2>Trajectory Plot</h2>
+            <div id="trajectory"></div>
+        </div>
+
+        <div class="panel config-panel">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label for="stages">Number of Stages:</label>
+                <input type="number" id="stages" value="2" min="1" max="3"
+                       onchange="buildinputs(parseInt(this.value))">
+            </div>
+            <div id="inputs"></div>
+            <button id="stbutton" onclick="startSimulation()" disabled>Start Simulation</button>
+            <button id="resetbutton" onclick="resetSimulation()">Reset Simulation</button>
+        </div>
+    </div>
 
     <script>
         let ws;
-        
+
         function connect(){
             ws = new WebSocket("ws://localhost:8000/ws");
             ws.onopen = () => {
@@ -29,17 +405,30 @@
             ws.onmessage = (event) => {
                 const parts = event.data.split(",");
                 if(parts.length < 5) return;
-                const[time, x, y, vx, vy] = parts.map(Number);
-                document.getElementById("Altitude").textContent = y.toFixed(1)+" m";
-                document.getElementById("Velocity").textContent = Math.sqrt(vx*vx + vy*vy).toFixed(1)+" m/s";
+                const [time, x, y, vx, vy] = parts.map(Number);
+                const altitude = y;
+                const velocity = Math.sqrt(vx*vx + vy*vy);
+                const gforce = velocity / 9.81; // approximate g-force as v/g
 
-                Plotly.extendTraces("trajectory", {
-                    x:[[x]], y:[[y]]},  [0]
-                );
-            }
+                // Update text displays
+                const altitudeEl = document.getElementById("Altitude");
+                const velocityEl = document.getElementById("Velocity");
+                const gforceEl = document.getElementById("GForce");
 
+                altitudeEl.textContent = altitude.toFixed(1) + " m";
+                velocityEl.textContent = velocity.toFixed(1) + " m/s";
+                gforceEl.textContent = gforce.toFixed(2) + " g";
+
+                // Add updating class for animation
+                [altitudeEl, velocityEl, gforceEl].forEach(el => {
+                    el.classList.add('updating');
+                    setTimeout(() => el.classList.remove('updating'), 500);
+                });
+
+                // Update trajectory
+                Plotly.extendTraces("trajectory", { x:[[x]], y:[[y]] }, [0]);
+            };
         }
-
 
         function buildinputs(n){
             const container = document.getElementById("inputs");
@@ -47,12 +436,28 @@
 
             for(let i = 1; i <= n; i++){
                 const stageDiv = document.createElement("div");
+                stageDiv.className = "stage-group";
                 stageDiv.innerHTML = `
-                    <h3>Stage ${i}</h3>
-                    <label>Thrust (N): <input type="number" id="thrust${i}" value="20"></label><br>
-                    <label>Fuel Mass (kg): <input type="number" id="fuel${i}" value="0.15"></label><br>
-                    <label>Dry Mass (kg): <input type="number" id="mass${i}" value="0.15"></label><br>
-                    <label>Burn Time (s): <input type="number" id="burn${i}" value="5"></label><br>
+                    <div class="stage-header">
+                        <h3>Stage ${i}</h3>
+                        <div class="status-indicator" id="status${i}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thrust (N)</label>
+                        <input type="number" id="thrust${i}" value="20" placeholder="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fuel Mass (kg)</label>
+                        <input type="number" id="fuel${i}" value="0.15" placeholder="0.15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dry Mass (kg)</label>
+                        <input type="number" id="mass${i}" value="0.15" placeholder="0.15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Burn Time (s)</label>
+                        <input type="number" id="burn${i}" value="5" placeholder="5">
+                    </div>
                 `;
                 container.appendChild(stageDiv);
             }
@@ -72,35 +477,64 @@
         }
 
         function resetSimulation() {
-            ws.close();
+            if (ws) {
+                ws.close();
+            }
             connect();
-            Plotly.newPlot("trajectory", 
-                [{x: [], y:[], mode: "lines", type: "scatter"}],
-                {
-                    title: "Rocket Trajectory",
-                    xaxis: {title: "X Position (m)"},
-                    yaxis: {title: "Y Position (m)"}
+            // Initialize trajectory plot
+            Plotly.newPlot("trajectory", [{x: [], y:[], mode: "lines", type: "scatter", line: {color: '#0066CC', width: 2}}], {
+                title: {
+                    text: "Rocket Trajectory",
+                    font: {
+                        color: '#212529',
+                        size: 18
+                    }
+                },
+                xaxis: {
+                    title: {
+                        text: "X Position (m)",
+                        font: {
+                            color: '#212529',
+                            size: 14
+                        }
+                    },
+                    color: '#212529',
+                    gridcolor: 'rgba(0,0,0,0.1)',
+                    zerolinecolor: 'rgba(0,0,0,0.2)',
+                    showgrid: true,
+                    zeroline: true
+                },
+                yaxis: {
+                    title: {
+                        text: "Y Position (m)",
+                        font: {
+                            color: '#212529',
+                            size: 14
+                        }
+                    },
+                    color: '#212529',
+                    gridcolor: 'rgba(0,0,0,0.1)',
+                    zerolinecolor: 'rgba(0,0,0,0.2)',
+                    showgrid: true,
+                    zeroline: true
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                font: {
+                    color: '#212529',
+                    family: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
                 }
-            );
-            document.getElementById("Altitude").textContent = "";
-            document.getElementById("Velocity").textContent = "";
+            });
+            // Clear text displays
+            document.getElementById("Altitude").textContent = "--.-- m";
+            document.getElementById("Velocity").textContent = "--.-- m/s";
+            document.getElementById("GForce").textContent = "--.xx g";
         }
 
+        // Initialization
         buildinputs(2);
         connect();
-
-        Plotly.newPlot("trajectory", 
-                [{x: [], y:[], mode: "lines", type: "scatter"}],
-                {
-                    title: "Rocket Trajectory",
-                    xaxis: {title: "X Position (m)"},
-                    yaxis: {title: "Y Position (m)"}
-                }
-            );
-       
-
+        resetSimulation(); // This will also create the plot
     </script>
 </body>
 </html>
-
-
