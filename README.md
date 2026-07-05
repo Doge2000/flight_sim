@@ -167,7 +167,7 @@ Python Matplotlib Interface (plot.py)
 - `plot.py` - Legacy matplotlib-based simulation visualizer
 - `index.html` - Web-based telemetry dashboard
 - `config.txt` - Default rocket configuration file
-- `sim.csv` - Output telemetry data from simulations
+- `sim.csv` - Output telemetry data from simulations (needed by legacy only)
 - `sim.exe` - Compiled C++ simulation executable
 
 ## License
