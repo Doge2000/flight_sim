@@ -48,7 +48,10 @@ int main(int argc, char* argv[]) {
     double area = 0.00113; // m^2
     double dragcoeff = 0.5;
 
-    
+    double prevy = 0;
+    bool sentlo = false;
+    bool sentap = false;
+    bool sentfall= false;
 
    
 
@@ -59,6 +62,7 @@ int main(int argc, char* argv[]) {
         if (y <= 0.0 && time > 2.0) {
             y = 0.0;
             vy = 0.0;
+            std:: cout << "STATUS: Landed\n";
             break;
         }
 
@@ -67,16 +71,38 @@ int main(int argc, char* argv[]) {
         }
 
 
-        if(vy==0 && time>2.0){
-            std:: cout << "Apogee reached at time " << time << " seconds, altitude: " << y << " meters.\n";
+
+        if(!sentlo && time > 1 && vy >0){
+            std:: cout << "STATUS: Powered Ascent\n";
+            std:: cout.flush();
+            sentlo = true;
         }
 
-        Stage& stage = stages[currentStage];
+        if(!sentfall && sentlo && currentStage <= stages.size() - 1 && stages[currentStage].fuel <= 0.0){
+            std::cout << "STATUS: Free Fall\n";
+            std::cout.flush();
+            sentfall = true;
+        }
+
+        if(!sentap && prevy >= 0 && vy <= 0  && time>2.0){
+            std:: cout << "STATUS: Apogee Reached\n";
+            std:: cout.flush();
+            sentap = true;
+        }
 
         if(vy<0 && y<=200.0 && !chute){
             chute = true;
-            std::cout << "Parachute deployed at time " << time << " seconds.\n";
+            std::cout << "STATUS: Parachute deployed\n";
+            std::cout.flush();
         }
+
+        
+        
+
+
+        Stage& stage = stages[currentStage];
+
+       
 
         double currentmass = 0;
         for(int i=0; i<stages.size(); i++){
@@ -120,16 +146,12 @@ int main(int argc, char* argv[]) {
        
         if (stage.fuel > 0.0) {
             stage.fuel -= stage.burn_rate * dt;
-            
             if (stage.fuel < 0.0){
                 stage.fuel = 0.0;
-                std::cout << "Stage " << (currentStage+1) << " has run out of fuel at time " << time << " seconds.\n";
-                
             }
         } else if (currentStage < stages.size() - 1) {
             stages[currentStage].dry_mass = 0.0; 
             currentStage++;
-            std::cout << "Stage 2 ignited at time " << time << " seconds.\n";
         }
 
       
@@ -138,6 +160,7 @@ int main(int argc, char* argv[]) {
             << stage.fuel << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
         std::cout.flush();
         time += dt;
+        prevy = vy;
         
 
     }
