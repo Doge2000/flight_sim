@@ -5,7 +5,7 @@ Comes with two interfaces: a legacy matplotlib GUI and a live web-based telemetr
 
 # Demos 
 - Legacy
-![alt text](0624.gif)
+![alt text](<0624 (1).gif>)
 - Web-based
 ![alt text](webbased-1.gif)
 
