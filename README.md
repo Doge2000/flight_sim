@@ -123,24 +123,6 @@ Example for a 2-stage rocket:
 sim.exe 2 20 0.15 0.10 15 15 0.10 0.05 10
 ```
 
-Default configuration (from `config.txt`):
-- Stage 1: 30N thrust, 0.150kg fuel, 0.100kg dry mass, 15s burn time
-- Stage 2: 15N thrust, 0.150kg fuel, 0.100kg dry mass, 10s burn time
-
-## Telemetry Data
-
-The simulation outputs CSV data with the following columns:
-- **Time**: Simulation time (seconds)
-- **X**: Horizontal position (meters)
-- **Y**: Vertical position/altitude (meters)
-- **Vx**: X-axis velocity (m/s)
-- **Vy**: Y-axis velocity (m/s)
-- **Speed**: Total velocity magnitude (m/s)
-- **Fuel**: Remaining fuel in current stage (kg)
-- **Mass**: Total rocket mass (kg)
-- **Angle**: Rocket angle from vertical (radians)
-- **Stage**: Current active stage number
-
 ## Architecture
 
 ```
