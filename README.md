@@ -147,7 +147,7 @@ The simulation outputs CSV data with the following columns:
 C++ Simulation Engine (sim.exe)
         │
         ▼
-  Stdout Telemetry Stream (CSV format)
+Stdout Telemetry Stream (CSV format)
         │
         ▼
 Python FastAPI Server (server.py)
