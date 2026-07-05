@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
       
         std::cout << time << "," << x << "," << y << ","
             << vx << "," << vy << "," << v << ","
-            << stage.fuel << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
+            << stage.fuel << "," << ax << "," << ay << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
         std::cout.flush();
         time += dt;
         prevy = vy;

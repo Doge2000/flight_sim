@@ -486,20 +486,22 @@
                 }
                 const parts = event.data.split(",");
                 if(parts.length < 5) return;
-                const [time, x, y, vx, vy] = parts.map(Number);
+                const [time, x, y, vx, vy, v, fuel, ax, ay, mass, angle, stage] = parts.map(Number);
                 const altitude = y;
                 const velocity = Math.sqrt(vx*vx + vy*vy);
-                const gforce = velocity / 9.81;
+                const gforce = Math.sqrt(ax*ax + ay*ay) / 9.81;
+                const angleDeg = angle * (180 / Math.PI);
 
                 // Update text displays
                 const altitudeEl = document.getElementById("Altitude");
                 const velocityEl = document.getElementById("Velocity");
                 const gforceEl = document.getElementById("GForce");
+        
 
                 altitudeEl.textContent = altitude.toFixed(1) + " m";
                 velocityEl.textContent = velocity.toFixed(1) + " m/s";
                 gforceEl.textContent = gforce.toFixed(2) + " g";
-
+                
 
                 [altitudeEl, velocityEl, gforceEl].forEach(el => {
                     el.classList.add('updating');
