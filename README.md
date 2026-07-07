@@ -146,7 +146,7 @@ For the legacy GUI:
 C++ Simulation Engine (sim.exe)
         │
         ▼
-CSV Output File (sim.csv)
+C++ Output File (cout)
         │
         ▼
 Python Matplotlib Interface (plot.py)
