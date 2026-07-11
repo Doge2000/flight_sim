@@ -57,6 +57,11 @@ int main(int argc, char* argv[]) {
 
     int currentStage = 0;
 
+    
+    std::ofstream outfile("sim.csv");
+
+    std::string header = "Time,X,Y,Vx,Vy,V,Fuel,Ax,Ay,Mass,Angle,Stage\n";
+    outfile << header;
 
     while (true) {
         if (y <= 0.0 && time > 2.0) {
@@ -156,6 +161,9 @@ int main(int argc, char* argv[]) {
 
       
         std::cout << time << "," << x << "," << y << ","
+            << vx << "," << vy << "," << v << ","
+            << stage.fuel << "," << ax << "," << ay << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
+        outfile << time << "," << x << "," << y << ","
             << vx << "," << vy << "," << v << ","
             << stage.fuel << "," << ax << "," << ay << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
         std::cout.flush();
