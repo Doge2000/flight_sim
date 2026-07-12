@@ -11,10 +11,12 @@ def load_data():
     t   = df["Time"].values
     x   = df["X"].values
     y   = df["Y"].values
+    z   = df["Z"].values
     vx  = df["Vx"].values
     vy  = df["Vy"].values
-    v   = np.sqrt(vx**2 + vy**2)
-    return t, x, y, vx, vy, v
+    vz  = df["Vz"].values
+    v   = np.sqrt(vx**2 + vy**2 + vz**2)
+    return t, x, y, z, vx, vy, vz, v
 
 def buildstageinputs(n):
     global liststagesaxes, liststageboxes
@@ -111,12 +113,12 @@ def update(frame):
     return rocket, trajectory, line
 
 def start_animation(event):
-    global t, x, y, vx, vy, v, frames_count, anim, started
+    global t, x, y, z, vx, vy, vz, v, frames_count, anim, started
     if started: return
     started = True
 
     runsim(int(numberofstages.text), liststageboxes)
-    t, x, y, vx, vy, v = load_data()
+    t, x, y, z, vx, vy, vz, v = load_data()
     frames_count = len(t)
 
     ax_sim.set_xlim(min(-50, float(np.nanmin(x)) * 1.1),
@@ -143,9 +145,9 @@ def pause_resume(event):
         paused = True
 
 def reset_animation(event):
-    global t, x, y, vx, vy, v, frames_count, anim, started, paused
+    global t, x, y, z, vx, vy, vz, v, frames_count, anim, started, paused
     started = False; paused = False
-    t = x = y = vx = vy = v = np.array([])
+    t = x = y = z = vx = vy = vz = v = np.array([])
     frames_count = 0
     init()
     ax_sim.set_xlim(-100, 100); ax_sim.set_ylim(0, 150)

@@ -486,11 +486,11 @@
                 }
                 const parts = event.data.split(",");
                 if(parts.length < 5) return;
-                const [time, x, y, vx, vy, v, fuel, ax, ay, mass, angle, stage] = parts.map(Number);
+                const [time, x, y, z, vx, vy, vz, fuel, ax, ay, az, mass, pitch, stage] = parts.map(Number);
                 const altitude = y;
-                const velocity = Math.sqrt(vx*vx + vy*vy);
-                const gforce = Math.sqrt(ax*ax + ay*ay) / 9.81;
-                const angleDeg = angle * (180 / Math.PI);
+                const velocity = Math.sqrt(vx*vx + vy*vy + vz*vz);
+                const gforce = Math.sqrt(ax*ax + ay*ay + az*az) / 9.81;
+                const pitchdeg = pitch * (180 / Math.PI);
 
                 // Update text displays
                 const altitudeEl = document.getElementById("Altitude");

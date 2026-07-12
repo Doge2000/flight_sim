@@ -33,9 +33,12 @@ int main(int argc, char* argv[]) {
 
    
     
-    double x = 1e-6, y = 1e-6;
-    double vx = 1e-6, vy = 1e-6;
-    double angle = M_PI / 2; // straight up
+    double x = 1e-6, y = 1e-6, z = 1e-6;
+    double vx = 1e-6, vy = 1e-6, vz = 1e-6;
+    double pitch = M_PI / 2; // straight up
+    double yaw = 0.0; 
+
+
 
     double dt = 0.01;
     double g = 9.81;
@@ -47,7 +50,8 @@ int main(int argc, char* argv[]) {
 
     double area = 0.00113; // m^2
     double dragcoeff = 0.5;
-
+    double basewind = 0;
+    
     double prevy = 0;
     bool sentlo = false;
     bool sentap = false;
@@ -60,7 +64,7 @@ int main(int argc, char* argv[]) {
     
     std::ofstream outfile("sim.csv");
 
-    std::string header = "Time,X,Y,Vx,Vy,V,Fuel,Ax,Ay,Mass,Angle,Stage\n";
+    std::string header = "Time,X,Y,Z,Vx,Vy,Vz,V,Fuel,Ax,Ay,Az,Mass,Angle,Stage\n";
     outfile << header;
 
     while (true) {
@@ -72,9 +76,8 @@ int main(int argc, char* argv[]) {
         }
 
         if(time>3){
-            angle-= 0.01*M_PI/180; //pitch program
+            pitch -= 0.01*M_PI/180; //pitch program
         }
-
 
 
         if(!sentlo && time > 1 && vy >0){
@@ -102,52 +105,62 @@ int main(int argc, char* argv[]) {
         }
 
         
-        
-
 
         Stage& stage = stages[currentStage];
 
-       
 
         double currentmass = 0;
         for(int i=0; i<stages.size(); i++){
             currentmass += stages[i].dry_mass + stages[i].fuel;
         }
-        double airdensity = 1.225;
-        double Fdragnochute = 0.5 * airdensity * vy * vy * area * dragcoeff;
-        double Fdragwchute = 0.5 * airdensity * vy * vy * 0.46 * 1.5; //about what a parachute drag coef would be 
+
+        double windx = basewind+0.002*y;
+        double windz = 0; //crosswind
+
+        double airdensity = 1.225 * std::exp(-y / 8500.0); //approximate air density at altitude
+        double relvx = vx - windx;
+        double relvy = vy;
+        double relvz = vz - windz;
+        double relv = std::sqrt(relvx * relvx + relvy * relvy + relvz * relvz);
+        double Fdragnochute = 0.5 * airdensity * relv * relv * area * dragcoeff;
+        double Fdragwchute = 0.5 * airdensity * relv * relv * 0.46 * 1.5; //about what a parachute drag coef would be 
         double currentdrag = chute ? Fdragwchute : Fdragnochute;
+        double dragy = -currentdrag * (relvy / (relv+1e-9));
+        double dragx = -currentdrag * (relvx / (relv+1e-9));
+        double dragz = -currentdrag * (relvz / (relv+1e-9));
 
         double Fx = 0;
         double Fy = 0;
+        double Fz = 0;
+
+        double thrustx = 0;
+        double thrusty = 0;
+        double thrustz = 0;
+
         //if theres fuel then apply thrust
         if(stage.fuel > 0.0){
-            Fx = stage.thrust * std::cos(angle);
-            Fy = stage.thrust * std::sin(angle) - currentmass * g;
+            thrustx = stage.thrust * std::cos(pitch) * std::cos(yaw);
+            thrusty = stage.thrust * std::sin(pitch);
+            thrustz = stage.thrust * std::cos(pitch) * std::sin(yaw);
         }
-        //other wise just gravity
-        else{
-            Fx = 0;
-            Fy = - currentmass * g;
-        }
+        
 
-        //drag is always opposite to velocity
-        if(vy<0){
-            Fy+= currentdrag;
-        }
-        else{
-            Fy -= currentdrag;
-        }
+        Fx = thrustx + dragx;
+        Fy = thrusty + dragy - currentmass * g;
+        Fz = thrustz + dragz;
 
         double ax = Fx / currentmass;
         double ay = Fy / currentmass;
+        double az = Fz / currentmass;
 
         vx += ax * dt;
         vy += ay * dt;
+        vz += az * dt;
         x += vx * dt;
         y += vy * dt;
+        z += vz * dt;
         alt = y;
-        v = std::sqrt(vx*vx + vy*vy);
+        v = std::sqrt(vx*vx + vy*vy + vz*vz);
        
         if (stage.fuel > 0.0) {
             stage.fuel -= stage.burn_rate * dt;
@@ -160,13 +173,14 @@ int main(int argc, char* argv[]) {
         }
 
       
-        std::cout << time << "," << x << "," << y << ","
-            << vx << "," << vy << "," << v << ","
-            << stage.fuel << "," << ax << "," << ay << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
-        outfile << time << "," << x << "," << y << ","
-            << vx << "," << vy << "," << v << ","
-            << stage.fuel << "," << ax << "," << ay << "," << currentmass << "," << angle << "," << (currentStage+1) << "\n";
+        std::cout << time << "," << x << "," << y << "," << z << ","
+            << vx << "," << vy << "," << vz << ","
+            << stage.fuel << "," << ax << "," << ay << "," << az << "," << currentmass << "," << pitch << "," << (currentStage+1) << "\n";
+        outfile << time << "," << x << "," << y << "," << z << ","
+            << vx << "," << vy << "," << vz << "," 
+            << stage.fuel << "," << ax << "," << ay<< ","<< az<< ","<< currentmass<< ","<< pitch<< ","<< (currentStage+1) << "\n";
         std::cout.flush();
+
         time += dt;
         prevy = vy;
         
