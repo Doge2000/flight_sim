@@ -19,6 +19,7 @@ A physics-based multi-stage rocket simulator that models thrust curves, drag for
   - Flight path trajectory (X/Y coordinates)
   - G-force calculations
   - Current flight stage status
+- **Interactive 3D visualization** using Three.js showing rocket orientation, trajectory trail, and real-time position in the web dashboard
 - **Dual interface support**:
   - **Web Dashboard** (Recommended): Real-time Plotly.js visualizations via WebSocket
   - **Legacy GUI**: Matplotlib-based post-simulation animation
