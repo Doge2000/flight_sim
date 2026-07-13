@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telemetry Dashboard</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         :root {
@@ -297,6 +305,30 @@
             min-height: 400px;
         }
 
+        /* Three.js container styling */
+        #scene3d-container {
+            background: var(--nasa-light);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--nasa-gray);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 300px;
+            position: relative;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transition: all 0.3s ease;
+        }
+
+        #scene3d-container:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        #scene3d-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         /* Plotly customization */
         .js-plotly-plot .plotly .main-svg {
             border-radius: 8px;
@@ -333,6 +365,11 @@
 
             .config-panel {
                 max-width: 100%;
+            }
+
+            /* Responsive adjustments for 3D container */
+            #scene3d-container {
+                min-height: 250px;
             }
         }
 
@@ -431,8 +468,10 @@
         <div class="panel graph-panel">
             <h2>Trajectory Plot</h2>
             <div id="trajectory"></div>
+            <h2>3D Trajectory</h2>
+            <div id="scene3d-container"></div>
         </div>
-
+        
         <div class="panel config-panel">
             <h2>Configuration</h2>
             <div class="form-group">
@@ -486,7 +525,7 @@
                 }
                 const parts = event.data.split(",");
                 if(parts.length < 5) return;
-                const [time, x, y, z, vx, vy, vz, fuel, ax, ay, az, mass, pitch, stage] = parts.map(Number);
+                const [time, x, y, z, vx, vy, vz, fuel, ax, ay, az, mass, pitch, yaw, stage] = parts.map(Number);
                 const altitude = y;
                 const velocity = Math.sqrt(vx*vx + vy*vy + vz*vz);
                 const gforce = Math.sqrt(ax*ax + ay*ay + az*az) / 9.81;
@@ -510,6 +549,8 @@
 
 
                 Plotly.extendTraces("trajectory", { x:[[x]], y:[[y]] }, [0]);
+                window.update3DRocket(x,y,z,pitch,yaw);
+
             };
         }
 
@@ -566,7 +607,14 @@
             connect();
 
             // Initialize trajectory plot
-            Plotly.newPlot("trajectory", [{x: [], y:[], mode: "lines", type: "scatter", line: {color: '#0066CC', width: 2}}], {
+            const trace2d = {
+                x: [],
+                y: [],
+                mode: "lines",
+                type: "scatter",
+                line: {color: '#0066CC', width: 2}
+            };
+            Plotly.newPlot("trajectory", [trace2d], {
                 title: {
                     text: "Rocket Trajectory",
                     font: {
@@ -609,6 +657,8 @@
                     family: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif'
                 }
             });
+
+            if(window.resetScene) window.resetScene();
             // Clear text displays
             document.getElementById("Altitude").textContent = "--.-- m";
             document.getElementById("Velocity").textContent = "--.-- m/s";
@@ -623,6 +673,130 @@
         buildinputs(2);
         connect();
         resetSimulation(); 
+    </script>
+
+    
+    <script type = "module">
+        import * as THREE from "three";
+        import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+        const scene = new THREE.Scene();
+        
+       
+        
+        const container = document.getElementById("scene3d-container");
+        const cam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        cam.position.z = 10;
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+    
+
+        const controls = new OrbitControls(cam, renderer.domElement);
+        controls.minDistance = 5;
+        controls.maxDistance = 10;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshStandardMaterial({color: 'white'});
+        const ambientlight = new THREE.AmbientLight('white', 0.4);
+        const directionallight = new THREE.DirectionalLight('white', 2);
+        directionallight.position.set(5,5,5);
+        const cube = new THREE.Mesh(geometry, material);
+        
+        const cylgeo = new THREE.CylinderGeometry(0.5, 0.5, 4);
+        const cylinder = new THREE.Mesh(cylgeo, material);
+        const conegeo = new THREE.ConeGeometry(0.5, 1);
+        const cone = new THREE.Mesh(conegeo, material);
+        const fingeo = new THREE.BoxGeometry(0.08, 0.5, 0.5);
+        
+        cylinder.position.y = 4/2;
+        cone.position.y = 4+0.5;
+
+
+        const rocket = new THREE.Group();
+
+        rocket.add(cylinder);
+        rocket.add(cone);
+        const deg = [0, 90, 180, 270];
+        for(let i=0; i<deg.length; i++){
+            const fin = new THREE.Mesh(fingeo, material);
+            fin.rotation.y = THREE.MathUtils.degToRad(deg[i]);
+            fin.translateZ(0.5);
+            fin.position.y = 0.5/2;
+            rocket.add(fin);
+        }
+        
+
+
+        const groundgeo = new THREE.PlaneGeometry(2000, 2000);
+        const groundcolor = new THREE.MeshStandardMaterial({color: 'blue'});
+        const ground = new THREE.Mesh(groundgeo, groundcolor);
+        ground.rotation.x = -Math.PI/2;
+
+        const grid = new THREE.GridHelper(4000, 800);
+
+        let trail = [];
+        const trailgeo = new THREE.BufferGeometry();
+        const trailmat = new THREE.LineBasicMaterial({color: 'red'});
+        const trailline = new THREE.Line(trailgeo, trailmat);
+        
+
+        //adding elements to scene
+        scene.add(trailline);
+        scene.add(grid);
+        scene.add(ground);
+        scene.add(rocket);
+        scene.add(ambientlight);
+        scene.add(directionallight);
+
+        
+        const directionvector = new THREE.Vector3();
+
+        function update3DRocket(x, y, z, pitch, yaw){
+            trail.push(new THREE.Vector3(x,y,z));
+            if(trail.length==1000){
+                trail.shift();
+            }
+            trailgeo.setFromPoints(trail);
+            rocket.position.set(x,y,z);
+            const dirx = Math.cos(pitch) * Math.cos(yaw);
+            const diry = Math.sin(pitch);
+            const dirz = Math.cos(pitch) * Math.sin(yaw);
+
+            directionvector.set(dirx, diry, dirz);
+            directionvector.normalize();
+            rocket.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), directionvector);
+
+          
+        }
+
+        window.update3DRocket = update3DRocket;
+
+        function resetScene(){
+            trail = [];
+            trailgeo.setFromPoints(trail);
+            rocket.position.set(0,0,0);
+            rocket.quaternion.identity();
+
+        }
+        
+        window.resetScene = resetScene;
+
+        function animate(){
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, cam);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            cam.aspect = container.clientWidth / container.clientHeight;
+            cam.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
     </script>
 </body>
 </html>

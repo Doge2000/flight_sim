@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     
     std::ofstream outfile("sim.csv");
 
-    std::string header = "Time,X,Y,Z,Vx,Vy,Vz,V,Fuel,Ax,Ay,Az,Mass,Angle,Stage\n";
+    std::string header = "Time,X,Y,Z,Vx,Vy,Vz,V,Fuel,Ax,Ay,Az,Mass,Pitch,Yaw,Stage\n";
     outfile << header;
 
     while (true) {
@@ -175,10 +175,10 @@ int main(int argc, char* argv[]) {
       
         std::cout << time << "," << x << "," << y << "," << z << ","
             << vx << "," << vy << "," << vz << ","
-            << stage.fuel << "," << ax << "," << ay << "," << az << "," << currentmass << "," << pitch << "," << (currentStage+1) << "\n";
+            << stage.fuel << "," << ax << "," << ay << "," << az << "," << currentmass << "," << pitch << "," << yaw << "," << (currentStage+1) << "\n";
         outfile << time << "," << x << "," << y << "," << z << ","
             << vx << "," << vy << "," << vz << "," 
-            << stage.fuel << "," << ax << "," << ay<< ","<< az<< ","<< currentmass<< ","<< pitch<< ","<< (currentStage+1) << "\n";
+            << stage.fuel << "," << ax << "," << ay<< ","<< az<< ","<< currentmass<< ","<< pitch<< ","<< yaw<< ","<< (currentStage+1) << "\n";
         std::cout.flush();
 
         time += dt;
