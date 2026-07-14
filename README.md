@@ -1,6 +1,14 @@
 # Rocket Flight Simulator
 
-A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute deployment. The simulator comes with two interfaces: a legacy matplotlib-based GUI for batch simulation and visualization, and a modern web-based telemetry dashboard for real-time monitoring.
+A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute displacement. The simulator features two interfaces: a legacy matplotlib-based GUI for batch simulation and a modern web-based telemetry dashboard for real-time monitoring.
+
+## Demos
+
+### Legacy Interface
+![Legacy Interface Demo](0624.gif)
+
+### Web-Based Dashboard
+![Web Dashboard Demo](webbased.gif)
 
 ## Features
 
@@ -224,16 +232,6 @@ sim.exe 3 50 1.0 0.2 20  30 0.5 0.1 15  10 0.2 0.05 10
 - Stage 2: 30N thrust, 0.5kg fuel, 0.1kg dry mass, 15s burn
 - Stage 3: 10N thrust, 0.2kg fuel, 0.05kg dry mass, 10s burn
 
-## Contributing
-
-Contributions are welcome. Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 ### Development Setup
 ```bash
 # Clone your fork
@@ -241,11 +239,8 @@ git clone https://github.com/yourusername/flight_sim.git
 cd flight_sim
 
 # Set up development environment
-pip install -r requirements.txt  # (create this file if needed)
+pip install -r requirements.txt  
 ```
-
-### Reporting Issues
-Please report bugs and feature requests using the Issues page.
 
 ## License
 
