@@ -162,6 +162,7 @@ flight_sim/
 ├── plot.py           # Legacy matplotlib-based simulation visualizer
 ├── index.html        # Web-based telemetry dashboard (with Three.js & Plotly.js)
 ├── config.txt        # Default rocket configuration file
+├── requirements.txt  # List of prereqs to install
 ├── sim.csv           # Output telemetry data from simulations (used by legacy GUI)
 ├── sim.exe           # Compiled C++ simulation executable
 ├── 0624.gif          # Legacy interface demo
