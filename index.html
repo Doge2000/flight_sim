@@ -312,7 +312,7 @@
             overflow: hidden;
             border: 1px solid var(--nasa-gray);
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            min-height: 300px;
+            min-height: 500px;
             position: relative;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             transition: all 0.3s ease;
@@ -369,7 +369,7 @@
 
             /* Responsive adjustments for 3D container */
             #scene3d-container {
-                min-height: 250px;
+                min-height: 500px;
             }
         }
 
@@ -693,7 +693,11 @@
 
     
 
-        // Controls disabled; camera manually updated in animate loop
+        const camgroup = new THREE.Group();
+        const targetgroup = new THREE.Group();
+
+        targetgroup.add(camgroup);
+        camgroup.add(cam);
 
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshStandardMaterial({color: 'white'});
@@ -732,7 +736,7 @@
         const ground = new THREE.Mesh(groundgeo, groundcolor);
         ground.rotation.x = -Math.PI/2;
 
-        const grid = new THREE.GridHelper(4000, 800);
+        const grid = new THREE.GridHelper(1000, 10,  'white', 'white');
 
         let trail = [];
         const trailgeo = new THREE.BufferGeometry();
@@ -741,8 +745,9 @@
         
 
         //adding elements to scene
-        scene.add(trailline);
         scene.add(grid);
+        scene.add(targetgroup);
+        scene.add(trailline);
         scene.add(ground);
         scene.add(rocket);
         scene.add(ambientlight);
@@ -753,7 +758,7 @@
 
         function update3DRocket(x, y, z, pitch, yaw){
             trail.push(new THREE.Vector3(x,y,z));
-            if(trail.length==1000){
+            if(trail.length==2000){
                 trail.shift();
             }
             trailgeo.setFromPoints(trail);
@@ -771,21 +776,56 @@
 
         window.update3DRocket = update3DRocket;
 
+
+        //camera control variables
+        let camyaw = 0;
+        let campitch = 0;
+        const mindist = 3;
+        const maxdist = 20;
+        let dist = 5;;
+
         function resetScene(){
             trail = [];
             trailgeo.setFromPoints(trail);
             rocket.position.set(0,0,0);
             rocket.quaternion.identity();
-
+            camyaw = 0;
+            campitch = 0;
+            dist = 5;
         }
         
         window.resetScene = resetScene;
 
+        
+
+        container.addEventListener('mousemove', (event) => {
+            if(event.buttons === 1){
+                camyaw -= event.movementX * 0.005;
+                campitch -= event.movementY * 0.005;
+                campitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, campitch));
+            }
+        });
+
+        
+
+        const offset = new THREE.Vector3(0,5,10);
+
+        container.addEventListener('wheel', (event) => {
+            event.preventDefault();
+            dist += event.deltaY*0.01;
+            dist = Math.max(mindist, Math.min(maxdist, dist));
+        });
+
         function animate(){
             requestAnimationFrame(animate);
-            const offset = new THREE.Vector3(0,5,10);
-            cam.position.copy(rocket.position).add(offset);
-            cam.lookAt(rocket.position);
+            
+            targetgroup.position.copy(rocket.position).add(offset);
+
+            camgroup.rotation.y = camyaw;
+            camgroup.rotation.x = campitch;
+
+            cam.position.z = dist;
+            
             renderer.render(scene, cam);
         }
         animate();
@@ -795,6 +835,12 @@
             cam.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
         });
+
+
+
+        
+
+        
     </script>
 </body>
 </html>

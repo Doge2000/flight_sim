@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     bool sentlo = false;
     bool sentap = false;
     bool sentfall= false;
+    bool stoppitch = false;
 
    
 
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if(time>3){
+        if(time>3 && !stoppitch){
             pitch -= 0.01*M_PI/180; //pitch program
         }
 
@@ -90,6 +91,7 @@ int main(int argc, char* argv[]) {
             std::cout << "STATUS: Free Fall\n";
             std::cout.flush();
             sentfall = true;
+            stoppitch = true;
         }
 
         if(!sentap && prevy >= 0 && vy <= 0  && time>2.0){
