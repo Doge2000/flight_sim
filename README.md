@@ -18,7 +18,7 @@ A physics-based multi-stage rocket simulator that models thrust curves, drag for
   - Thrust vectoring based on rocket angle
   - Gravity simulation (9.81 m/s²)
   - Drag modeling with different coefficients for freefall vs. parachute descent
-  - Automatic pitch program initiation 3 seconds after liftoff
+  - Automatic pitch program initiation 2 seconds after liftoff
   - Parachute deployment at 200m altitude during descent
 - High-precision simulation at 100Hz update rate
 

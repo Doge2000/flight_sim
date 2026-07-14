@@ -463,6 +463,10 @@
                 <div class="telemetry-label">G-Force</div>
                 <div id="GForce" class="telemetry-value">--.xx g</div>
             </div>
+            <div class="telemetry-item">
+                <div class="telemetry-label">Time</div>
+                <div id="Time" class="telemetry-value">--.-- s</div>
+            </div>
         </div>
 
         <div class="panel graph-panel">
@@ -530,19 +534,22 @@
                 const velocity = Math.sqrt(vx*vx + vy*vy + vz*vz);
                 const gforce = Math.sqrt(ax*ax + ay*ay + az*az) / 9.81;
                 const pitchdeg = pitch * (180 / Math.PI);
+                const t = time;
 
                 // Update text displays
                 const altitudeEl = document.getElementById("Altitude");
                 const velocityEl = document.getElementById("Velocity");
                 const gforceEl = document.getElementById("GForce");
+                const timeEl = document.getElementById("Time");
         
 
                 altitudeEl.textContent = altitude.toFixed(1) + " m";
                 velocityEl.textContent = velocity.toFixed(1) + " m/s";
                 gforceEl.textContent = gforce.toFixed(2) + " g";
+                timeEl.textContent = time.toFixed(2)+" s";
                 
 
-                [altitudeEl, velocityEl, gforceEl].forEach(el => {
+                [altitudeEl, velocityEl, gforceEl, timeEl].forEach(el => {
                     el.classList.add('updating');
                     setTimeout(() => el.classList.remove('updating'), 500);
                 });
@@ -663,6 +670,7 @@
             document.getElementById("Altitude").textContent = "--.-- m";
             document.getElementById("Velocity").textContent = "--.-- m/s";
             document.getElementById("GForce").textContent = "--.xx g";
+            document.getElementById("Time").textContent = "--.-- s";
             // Reset status
             const statusEl = document.getElementById("status");
             statusEl.textContent = "Awaiting Launch";
@@ -684,11 +692,12 @@
        
         
         const container = document.getElementById("scene3d-container");
-        const cam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-        cam.position.z = 10;
+        const cam = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 20000);
+        cam.position.z = 2;
 
-        const renderer = new THREE.WebGLRenderer();
+        const renderer = new THREE.WebGLRenderer({antialias: true});
         renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
         container.appendChild(renderer.domElement);
 
     
@@ -731,12 +740,12 @@
         
 
 
-        const groundgeo = new THREE.PlaneGeometry(2000, 2000);
-        const groundcolor = new THREE.MeshStandardMaterial({color: 'blue'});
+        const groundgeo = new THREE.PlaneGeometry(5000, 5000);
+        const groundcolor = new THREE.MeshStandardMaterial({color: 'green'});
         const ground = new THREE.Mesh(groundgeo, groundcolor);
         ground.rotation.x = -Math.PI/2;
 
-        const grid = new THREE.GridHelper(1000, 10,  'white', 'white');
+        const grid = new THREE.GridHelper(5000, 50,  'white', 'white');
 
         let trail = [];
         const trailgeo = new THREE.BufferGeometry();
@@ -762,16 +771,14 @@
                 trail.shift();
             }
             trailgeo.setFromPoints(trail);
+            trailgeo.computeBoundingSphere();
             rocket.position.set(x,y,z);
             const dirx = Math.cos(pitch) * Math.cos(yaw);
             const diry = Math.sin(pitch);
             const dirz = Math.cos(pitch) * Math.sin(yaw);
-
             directionvector.set(dirx, diry, dirz);
             directionvector.normalize();
             rocket.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), directionvector);
-
-          
         }
 
         window.update3DRocket = update3DRocket;
@@ -780,9 +787,9 @@
         //camera control variables
         let camyaw = 0;
         let campitch = 0;
-        const mindist = 3;
+        const mindist = 0.00;
         const maxdist = 20;
-        let dist = 5;;
+        let dist = 2;
 
         function resetScene(){
             trail = [];

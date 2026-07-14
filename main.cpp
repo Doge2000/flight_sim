@@ -76,8 +76,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 
-        if(time>3 && !stoppitch){
-            pitch -= 0.01*M_PI/180; //pitch program
+        if(time>2 && !stoppitch){
+            pitch -= 0.05*M_PI/180; //pitch program
         }
 
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
             sentlo = true;
         }
 
-        if(!sentfall && sentlo && currentStage <= stages.size() - 1 && stages[currentStage].fuel <= 0.0){
+        if(!sentfall && sentlo && currentStage >= stages.size() - 1 && stages[currentStage].fuel <= 0.0){
             std::cout << "STATUS: Free Fall\n";
             std::cout.flush();
             sentfall = true;
