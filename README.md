@@ -206,6 +206,7 @@ flight_sim/
 | Missing Python modules | Install required packages using `pip install` as specified in installation instructions |
 | Plotly not loading | Check internet connection for CDN delivery of Plotly.js; occurs in `index.html` |
 | Three.js not loading | Check internet connection for CDN delivery of Three.js; occurs in `index.html` |
+| Rocket model disappears starting simulation | Check chrome://gpu — if WebGL shows "Software only," your GPU driver is blocklisted by Chrome and can't recover from context loss under load. This is a driver limitation, not a bug. Reload the page after each run. |
 
 ## Example Configurations
 
