@@ -47,6 +47,8 @@ A physics-based multi-stage rocket simulator that models thrust curves, drag for
     - Matplotlib
     - Pandas
     - NumPy
+  - For running validation tests (optional):
+    - pytest
 
 ## Installation
 
@@ -73,9 +75,14 @@ pip install fastapi uvicorn
 pip install matplotlib pandas numpy
 ```
 
-#### For Both Interfaces:
+#### For Running Validation Tests:
 ```bash
-pip install fastapi uvicorn matplotlib pandas numpy
+pip install pytest
+```
+
+#### For All of the Above:
+```bash
+pip install fastapi uvicorn matplotlib pandas numpy pytest
 ```
 
 ## Quick Start
@@ -153,6 +160,22 @@ Edit `config.txt` to set default rocket parameters:
 First line: number of stages
 Following lines: thrust fuel dry_mass burn_time for each stage
 
+## Testing
+
+`validation_test.py` is a test that checks the simulator's numerical output against closed-form analytical solutions, rather than just checking that the program runs.
+
+Since the physics logic lives inline in `main()` with no separately callable functions, these are black-box tests: they run `sim.exe` as a subprocess with a special `SIM_TEST_NODRAG` environment variable that zeroes out air density (and therefore all drag), isolating the integrator from drag/wind complexity. With drag removed, two phases of flight have exact analytical answers to check against:
+
+- **Powered ascent** — constant thrust with linearly-depleting mass has a closed-form velocity solution
+- **Coast phase** — pure projectile motion under gravity alone
+
+Run the tests with:
+```bash
+pytest validation_test.py -v
+```
+
+`SIM_TEST_NODRAG` only affects test runs — normal simulations (web dashboard, legacy GUI, CLI) are unaffected and use full atmospheric drag as usual.
+
 ## Project Structure
 
 ```
@@ -165,6 +188,8 @@ flight_sim/
 ├── requirements.txt  # List of prereqs to install
 ├── sim.csv           # Output telemetry data from simulations (used by legacy GUI)
 ├── sim.exe           # Compiled C++ simulation executable
+├── PHYSICS.md         # Writeup of the equations of motion and physics models used
+├── validation_test.py  # Validation tests vs. closed-form solutions
 ├── 0624.gif          # Legacy interface demo
 ├── webbased.gif      # Web dashboard demo
 └── README.md         # This file
@@ -178,6 +203,8 @@ flight_sim/
 - Drag Coefficients: Different drag coefficients for ballistic vs. parachute configurations
 - Thrust Vectoring: Thrust direction follows rocket orientation for realistic trajectory control
 - Multi-Stage Separation: Automatic stage jettisoning when fuel is depleted
+
+See [`PHYSICS.md`](PHYSICS.md) for the full breakdown of the equations, atmospheric/wind models, and known simplifications.
 
 ### Web Dashboard Features
 - Real-Time Plots: Live updating altitude/velocity charts with Plotly.js
@@ -207,6 +234,7 @@ flight_sim/
 | Plotly not loading | Check internet connection for CDN delivery of Plotly.js; occurs in `index.html` |
 | Three.js not loading | Check internet connection for CDN delivery of Three.js; occurs in `index.html` |
 | Rocket model disappears starting simulation | Check chrome://gpu — if WebGL shows "Software only," your GPU driver is blocklisted by Chrome and can't recover from context loss under load. This is a driver limitation, not a bug. Reload the page after each run. |
+| `pytest` not recognized | pytest isn't installed or isn't on PATH. Run `pip install pytest`, then try `python -m pytest tests/test_physics_validation.py -v` instead of the bare `pytest` command. |
 
 ## Example Configurations
 
