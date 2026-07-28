@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    double dt = 0.01;
+    double dt = 0.0001;
     double g = 9.81;
     double alt = 0.0;
     double v = 0.0;
@@ -62,6 +62,8 @@ int main(int argc, char* argv[]) {
 
     int currentStage = 0;
 
+
+    bool no_drag = std::getenv("SIM_TEST_NODRAG") != nullptr;
     
     std::ofstream outfile("sim.csv");
 
@@ -69,6 +71,19 @@ int main(int argc, char* argv[]) {
     outfile << header;
 
     while (true) {
+
+        Stage& stage = stages[currentStage];
+
+        if (stage.fuel > 0.0) {
+            stage.fuel -= stage.burn_rate * dt;
+            if (stage.fuel < 0.0){
+                stage.fuel = 0.0;
+            }
+        } else if (currentStage < stages.size() - 1) {
+            stages[currentStage].dry_mass = 0.0; 
+            currentStage++;
+        }
+        
         if (y <= 0.0 && time > 2.0) {
             y = 0.0;
             vy = 0.0;
@@ -108,7 +123,7 @@ int main(int argc, char* argv[]) {
 
         
 
-        Stage& stage = stages[currentStage];
+       
 
 
         double currentmass = 0;
@@ -119,7 +134,7 @@ int main(int argc, char* argv[]) {
         double windx = basewind+0.002*y;
         double windz = 0; //crosswind
 
-        double airdensity = 1.225 * std::exp(-y / 8500.0); //approximate air density at altitude
+        double airdensity = no_drag? 0.0 : 1.225 * std::exp(-y / 8500.0); //approximate air density at altitude
         double relvx = vx - windx;
         double relvy = vy;
         double relvz = vz - windz;
@@ -155,25 +170,19 @@ int main(int argc, char* argv[]) {
         double ay = Fy / currentmass;
         double az = Fz / currentmass;
 
-        vx += ax * dt;
-        vy += ay * dt;
-        vz += az * dt;
         x += vx * dt;
         y += vy * dt;
         z += vz * dt;
+        vx += ax * dt;
+        vy += ay * dt;
+        vz += az * dt;
+        
         alt = y;
         v = std::sqrt(vx*vx + vy*vy + vz*vz);
        
-        if (stage.fuel > 0.0) {
-            stage.fuel -= stage.burn_rate * dt;
-            if (stage.fuel < 0.0){
-                stage.fuel = 0.0;
-            }
-        } else if (currentStage < stages.size() - 1) {
-            stages[currentStage].dry_mass = 0.0; 
-            currentStage++;
-        }
+       
 
+        time += dt;
       
         std::cout << time << "," << x << "," << y << "," << z << ","
             << vx << "," << vy << "," << vz << "," << v  << "," 
@@ -183,7 +192,7 @@ int main(int argc, char* argv[]) {
             << stage.fuel << "," << ax << "," << ay<< ","<< az<< ","<< currentmass<< ","<< pitch<< ","<< yaw<< ","<< (currentStage+1) << "\n";
         std::cout.flush();
 
-        time += dt;
+        
         prevy = vy;
         
 
