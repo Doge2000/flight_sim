@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    double dt = 0.0001;
+    double dt = 0.001;
     double g = 9.81;
     double alt = 0.0;
     double v = 0.0;
