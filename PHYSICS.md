@@ -97,7 +97,6 @@ The simulator emits status strings over stdout/WebSocket at specific transitions
 - Fixed, scripted pitch-over rather than a physically-derived gravity turn.
 - No Coriolis or Earth-rotation effects (reasonable at this scale).
 - Parachute drag uses a fixed `A*Cd` rather than separate, physically-motivated area and coefficient values.
-- **CSV column mismatch:** the header row (`Time,X,Y,Z,Vx,Vy,Vz,V,Fuel,Ax,Ay,Az,Mass,Pitch,Yaw,Stage`) includes a `V` (speed magnitude) column, but the actual data rows never write that value — `v` is computed each step but not output. So every column from `V` onward in the header is shifted by one relative to the actual data (the header's `V` slot actually holds `Fuel`, its `Fuel` slot holds `Ax`, and so on). The web dashboard's JS parses the raw columns directly and happens to match the *actual* data layout (no `V`), so it isn't affected — but anything reading `sim.csv` by header name (e.g. pandas with `header=0`) would be pulling mislabeled columns. Worth a one-line fix (either drop `V` from the header or add it back to the output) before it trips up the legacy GUI or any future analysis script.
 
 ## Possible Extensions
 

@@ -15,7 +15,7 @@ def load_data():
     vx  = df["Vx"].values
     vy  = df["Vy"].values
     vz  = df["Vz"].values
-    v   = np.sqrt(vx**2 + vy**2 + vz**2)
+    v   = df["V"].values
     return t, x, y, z, vx, vy, vz, v
 
 def buildstageinputs(n):

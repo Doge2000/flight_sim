@@ -176,10 +176,10 @@ int main(int argc, char* argv[]) {
 
       
         std::cout << time << "," << x << "," << y << "," << z << ","
-            << vx << "," << vy << "," << vz << ","
+            << vx << "," << vy << "," << vz << "," << v  << "," 
             << stage.fuel << "," << ax << "," << ay << "," << az << "," << currentmass << "," << pitch << "," << yaw << "," << (currentStage+1) << "\n";
         outfile << time << "," << x << "," << y << "," << z << ","
-            << vx << "," << vy << "," << vz << "," 
+            << vx << "," << vy << "," << vz << "," << v << ","
             << stage.fuel << "," << ax << "," << ay<< ","<< az<< ","<< currentmass<< ","<< pitch<< ","<< yaw<< ","<< (currentStage+1) << "\n";
         std::cout.flush();
 

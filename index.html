@@ -529,7 +529,7 @@
                 }
                 const parts = event.data.split(",");
                 if(parts.length < 5) return;
-                const [time, x, y, z, vx, vy, vz, fuel, ax, ay, az, mass, pitch, yaw, stage] = parts.map(Number);
+                const [time, x, y, z, vx, vy, vz, v, fuel, ax, ay, az, mass, pitch, yaw, stage] = parts.map(Number);
                 const altitude = y;
                 const velocity = Math.sqrt(vx*vx + vy*vy + vz*vz);
                 const gforce = Math.sqrt(ax*ax + ay*ay + az*az) / 9.81;
