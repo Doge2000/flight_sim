@@ -20,7 +20,7 @@ A physics-based multi-stage rocket simulator that models thrust curves, drag for
   - Drag modeling with different coefficients for freefall vs. parachute descent
   - Automatic pitch program initiation 2 seconds after liftoff
   - Parachute deployment at 200m altitude during descent
-- High-precision simulation at 1000Hz update rate
+- High-precision simulation at 100Hz update rate
 
 ### Real-Time Telemetry
 - Live telemetry streaming via WebSocket
@@ -228,7 +228,7 @@ See [`PHYSICS.md`](PHYSICS.md) for the full breakdown of the equations, atmosphe
 | WebSocket connection failed | Ensure the FastAPI server is running (`python -m uvicorn server:app --reload`) and accessible at `ws://localhost:8000/ws` |
 | Simulation not starting | Verify that `sim.exe` has been compiled and is in the same directory as the server |
 | No data appearing | Check browser console for WebSocket connection errors; ensure server is running |
-| Poor performance | Reduce browser tab count or close other applications; simulation runs at 1000Hz |
+| Poor performance | Reduce browser tab count or close other applications; simulation runs at 100Hz |
 | Compilation errors | Ensure you have a C++17-compatible compiler installed and in your PATH |
 | Missing Python modules | Install required packages using `pip install` as specified in installation instructions |
 | Plotly not loading | Check internet connection for CDN delivery of Plotly.js; occurs in `index.html` |

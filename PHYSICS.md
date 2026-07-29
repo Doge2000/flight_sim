@@ -4,7 +4,7 @@ This document describes the physics implemented in `main.cpp`: the equations of 
 
 ## Integration Scheme
 
-The simulator uses **semi-implicit (symplectic) Euler integration** at a fixed timestep of `dt = 0.001 s` (1000 Hz), matching the README's stated update rate.
+The simulator uses **semi-implicit (symplectic) Euler integration** at a fixed timestep of `dt = 0.01 s` (100 Hz), matching the README's stated update rate.
 
 Each step:
 1. Compute net force `F` from thrust, drag, and gravity using the *current* state.
@@ -88,7 +88,7 @@ The simulator emits status strings over stdout/WebSocket at specific transitions
 | `Parachute deployed` | `vy < 0` and altitude `≤ 200 m` |
 | `Landed` | `y ≤ 0` after `t > 2s` |
 
-**A note on the apogee check worth verifying in your own testing:** the condition is `prevy >= 0 && vy <= 0`, where `prevy` is meant to capture the previous step's vertical velocity so the code can detect the sign flip (positive → negative) at apogee. However, `prevy` is assigned *after* the velocity update at the bottom of the loop, and read again at the top of the *next* loop *before* that iteration's velocity update runs. Since nothing changes `vy` in between those two points, `prevy` and `vy` hold the exact same value at the moment they're compared — the condition effectively becomes "is `vy` simultaneously `≥ 0` and `≤ 0`," which is only true if `vy` lands on exactly `0.0`. At a 1000 Hz timestep with floating-point velocities, that's unlikely to happen naturally, so this message may fire rarely or never in practice. If you've noticed `Apogee Reached` not showing up reliably, this is almost certainly why — the fix would be capturing `prevy` at the *top* of the loop (before the update) rather than the bottom.
+**A note on the apogee check worth verifying in your own testing:** the condition is `prevy >= 0 && vy <= 0`, where `prevy` is meant to capture the previous step's vertical velocity so the code can detect the sign flip (positive → negative) at apogee. However, `prevy` is assigned *after* the velocity update at the bottom of the loop, and read again at the top of the *next* loop *before* that iteration's velocity update runs. Since nothing changes `vy` in between those two points, `prevy` and `vy` hold the exact same value at the moment they're compared — the condition effectively becomes "is `vy` simultaneously `≥ 0` and `≤ 0`," which is only true if `vy` lands on exactly `0.0`. At a 100 Hz timestep with floating-point velocities, that's unlikely to happen naturally, so this message may fire rarely or never in practice. If you've noticed `Apogee Reached` not showing up reliably, this is almost certainly why — the fix would be capturing `prevy` at the *top* of the loop (before the update) rather than the bottom.
 
 ## Known Simplifications
 
