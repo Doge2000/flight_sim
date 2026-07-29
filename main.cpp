@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 
 
 
-    double dt = 0.001;
+    double dt = 0.01;
     double g = 9.81;
     double alt = 0.0;
     double v = 0.0;
@@ -72,17 +72,9 @@ int main(int argc, char* argv[]) {
 
     while (true) {
 
-        Stage& stage = stages[currentStage];
+       
 
-        if (stage.fuel > 0.0) {
-            stage.fuel -= stage.burn_rate * dt;
-            if (stage.fuel < 0.0){
-                stage.fuel = 0.0;
-            }
-        } else if (currentStage < stages.size() - 1) {
-            stages[currentStage].dry_mass = 0.0; 
-            currentStage++;
-        }
+       
         
         if (y <= 0.0 && time > 2.0) {
             y = 0.0;
@@ -123,6 +115,7 @@ int main(int argc, char* argv[]) {
 
         
 
+        Stage& stage = stages[currentStage];
        
 
 
@@ -170,16 +163,29 @@ int main(int argc, char* argv[]) {
         double ay = Fy / currentmass;
         double az = Fz / currentmass;
 
-        x += vx * dt;
-        y += vy * dt;
-        z += vz * dt;
+
         vx += ax * dt;
         vy += ay * dt;
         vz += az * dt;
+
+        x += vx * dt;
+        y += vy * dt;
+        z += vz * dt;
+        
         
         alt = y;
         v = std::sqrt(vx*vx + vy*vy + vz*vz);
        
+
+         if (stage.fuel > 0.0) {
+            stage.fuel -= stage.burn_rate * dt;
+            if (stage.fuel < 0.0){
+                stage.fuel = 0.0;
+            }
+        } else if (currentStage < stages.size() - 1) {
+            stages[currentStage].dry_mass = 0.0; 
+            currentStage++;
+        }
        
 
         time += dt;

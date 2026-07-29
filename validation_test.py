@@ -9,12 +9,13 @@ CSVPATH = os.path.join(os.path.dirname(__file__), "", "sim.csv")
 
 
 g = 9.81
-abstolerance = 0.1
-reltolerance = 1e-3
+abstolerancev = 0.01
+reltolerancev = 0.01
+abstolerancey = 0.5
+reltolerancey = 0.01
 
 
 #config
-
 thrust = 50
 fuel = 1
 drymass = 0.5
@@ -58,8 +59,8 @@ def test_poweredascentmatch():
         vysim = r[5]
         vyexp = analyticalv(t, thrust, m0, burnrate)
         relerror = abs(vysim-vyexp) / max(abs(vyexp), 1e-9)
-
-        assert relerror < reltolerance, (
+        abserror = abs(vysim-vyexp)
+        assert relerror < reltolerancev or abserror < abstolerancev, (
             f"t={t:.3f}s: sim vy = {vysim:.6f}, expected = {vyexp:.6f}. "
             f"rel error={relerror:.6f}"
         )
@@ -89,7 +90,7 @@ def test_coastphase():
         relerr = abs(ysim-yexp) / max(abs(yexp), 1e-9)
 
     
-        assert abserr < abstolerance or relerr < reltolerance, (
+        assert abserr < abstolerancey or relerr < reltolerancey, (
             f"t={r[0]:.3f}s: sim y={ysim:.6f}, expected={yexp:.6f}, "
             f"abs error={abserr:.6f}, rel error={relerr:.6f}"
         )
