@@ -1,5 +1,7 @@
 # Rocket Flight Simulator
 
+![CI](https://github.com/Doge2000/flight_sim/actions/workflows/CI.yml/badge.svg)
+
 A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute displacement. The simulator features two interfaces: a legacy matplotlib-based GUI for batch simulation and a modern web-based telemetry dashboard for real-time monitoring.
 
 ## Demos
@@ -162,7 +164,7 @@ Following lines: thrust fuel dry_mass burn_time for each stage
 
 ## Testing
 
-`validation_test.py` is a test that checks the simulator's numerical output against closed-form analytical solutions, rather than just checking that the program runs.
+The validation tests check the simulator's numerical output against closed-form analytical solutions, rather than just checking that the program runs.
 
 Since the physics logic lives inline in `main()` with no separately callable functions, these are black-box tests: they run `sim.exe` as a subprocess with a special `SIM_TEST_NODRAG` environment variable that zeroes out air density (and therefore all drag), isolating the integrator from drag/wind complexity. With drag removed, two phases of flight have exact analytical answers to check against:
 
@@ -171,28 +173,34 @@ Since the physics logic lives inline in `main()` with no separately callable fun
 
 Run the tests with:
 ```bash
+pip install pytest
 pytest validation_test.py -v
 ```
 
 `SIM_TEST_NODRAG` only affects test runs — normal simulations (web dashboard, legacy GUI, CLI) are unaffected and use full atmospheric drag as usual.
 
+These tests run automatically on every push via GitHub Actions (see `.github/workflows/CI.yml`).
+
 ## Project Structure
 
 ```
 flight_sim/
-├── main.cpp          # C++ rocket simulation engine
-├── server.py         # FastAPI WebSocket server for real-time telemetry
-├── plot.py           # Legacy matplotlib-based simulation visualizer
-├── index.html        # Web-based telemetry dashboard (with Three.js & Plotly.js)
-├── config.txt        # Default rocket configuration file
-├── requirements.txt  # List of prereqs to install
-├── sim.csv           # Output telemetry data from simulations (used by legacy GUI)
-├── sim.exe           # Compiled C++ simulation executable
-├── PHYSICS.md         # Writeup of the equations of motion and physics models used
-├── validation_test.py  # Validation tests vs. closed-form solutions
-├── 0624.gif          # Legacy interface demo
-├── webbased.gif      # Web dashboard demo
-└── README.md         # This file
+├── main.cpp             # C++ rocket simulation engine
+├── server.py             # FastAPI WebSocket server for real-time telemetry
+├── plot.py               # Legacy matplotlib-based simulation visualizer
+├── index.html            # Web-based telemetry dashboard (with Three.js & Plotly.js)
+├── config.txt             # Default rocket configuration file
+├── requirements.txt      # List of prereqs to install
+├── sim.csv                # Output telemetry data from simulations (used by legacy GUI)
+├── sim.exe                # Compiled C++ simulation executable
+├── PHYSICS.md             # Writeup of the equations of motion and physics models used
+├── validation_test.py    # Validation tests vs. closed-form analytical solutions
+├── .github/workflows/
+│   └── CI.yml             # GitHub Actions workflow: compile + run tests on every push
+├── LICENSE                 # MIT License
+├── 0624.gif               # Legacy interface demo
+├── webbased.gif           # Web dashboard demo
+└── README.md              # This file
 ```
 
 ## Features in Detail
@@ -234,7 +242,7 @@ See [`PHYSICS.md`](PHYSICS.md) for the full breakdown of the equations, atmosphe
 | Plotly not loading | Check internet connection for CDN delivery of Plotly.js; occurs in `index.html` |
 | Three.js not loading | Check internet connection for CDN delivery of Three.js; occurs in `index.html` |
 | Rocket model disappears starting simulation | Check chrome://gpu — if WebGL shows "Software only," your GPU driver is blocklisted by Chrome and can't recover from context loss under load. This is a driver limitation, not a bug. Reload the page after each run. |
-| `pytest` not recognized | pytest isn't installed or isn't on PATH. Run `pip install pytest`, then try `python -m pytest tests/test_physics_validation.py -v` instead of the bare `pytest` command. |
+| `pytest` not recognized | pytest isn't installed or isn't on PATH. Run `pip install pytest`, then try `python -m pytest validation_test.py -v` instead of the bare `pytest` command. |
 
 ## Example Configurations
 
@@ -274,7 +282,7 @@ pip install -r requirements.txt
 
 ## License
 
-This project is open source and available for modification and distribution.
+This project is licensed under the MIT License — see [`LICENSE`](LICENSE) for details.
 
 ## Acknowledgments
 
