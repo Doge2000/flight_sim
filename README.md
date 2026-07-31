@@ -1,7 +1,7 @@
 # Rocket Flight Simulator
 
 [![CI](https://github.com/Doge2000/flight_sim/actions/workflows/CI.yml/badge.svg)](https://github.com/Doge2000/flight_sim/actions/workflows/CI.yml)
-![License: MIT](https://shields.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Doge2000/flight_sim/blob/main/LICENSE)
 
 A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute displacement. The simulator features two interfaces: a legacy matplotlib-based GUI for batch simulation and a modern web-based telemetry dashboard for real-time monitoring.
 
