@@ -186,21 +186,22 @@ These tests run automatically on every push via GitHub Actions (see `.github/wor
 
 ```
 flight_sim/
-├── main.cpp             # C++ rocket simulation engine
-├── server.py             # FastAPI WebSocket server for real-time telemetry
-├── plot.py               # Legacy matplotlib-based simulation visualizer
-├── index.html            # Web-based telemetry dashboard (with Three.js & Plotly.js)
+├── main.cpp               # C++ rocket simulation engine
+├── server.py              # FastAPI WebSocket server for real-time telemetry
+├── plot.py                # Legacy matplotlib-based simulation visualizer
+├── index.html             # Web-based telemetry dashboard (with Three.js & Plotly.js)
 ├── config.txt             # Default rocket configuration file
-├── requirements.txt      # List of prereqs to install
+├── requirements.txt       # List of prereqs to install
 ├── sim.csv                # Output telemetry data from simulations (used by legacy GUI)
 ├── sim.exe                # Compiled C++ simulation executable
 ├── PHYSICS.md             # Writeup of the equations of motion and physics models used
-├── validation_test.py    # Validation tests vs. closed-form analytical solutions
+├── validation_test.py     # Validation tests vs. closed-form analytical solutions
 ├── .github/workflows/
 │   └── CI.yml             # GitHub Actions workflow: compile + run tests on every push
-├── LICENSE                 # MIT License
-├── 0624.gif               # Legacy interface demo
-├── webbased.gif           # Web dashboard demo
+├── gifs/
+│   └── 0624.gif           # Legacy interface demo
+|   └── webbased.gif       # Web dashboard demo
+├── LICENSE                # MIT License
 └── README.md              # This file
 ```
 
