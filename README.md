@@ -7,10 +7,10 @@ A physics-based multi-stage rocket simulator that models thrust curves, drag for
 ## Demos
 
 ### Legacy Interface
-![Legacy Interface Demo](0624.gif)
+![Legacy Interface Demo](gifs/0624.gif)
 
 ### Web-Based Dashboard
-![Web Dashboard Demo](webbased.gif)
+![Web Dashboard Demo](gifs/webbased.gif)
 
 ## Features
 
