@@ -100,9 +100,8 @@ def test_coastphase():
 
 
 
-
-    if __name__ == "__main__":
-        test_poweredascentmatch()
-        print("powered ascent test passed")
-        test_coastphase()
-        print("coast phase test passed")
+if __name__ == "__main__":
+    test_poweredascentmatch()
+    print("powered ascent test passed")
+    test_coastphase()
+    print("coast phase test passed")   

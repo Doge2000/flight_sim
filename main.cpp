@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         stages[i].thrust = std::stod(argv[ind++]);
         stages[i].fuel = std::stod(argv[ind++]);
         stages[i].dry_mass = std::stod(argv[ind++]);
-        int time = std::stod(argv[ind++]);
+        double time = std::stod(argv[ind++]);
         stages[i].burn_rate = stages[i].fuel / time;
     }
 
