@@ -3,7 +3,7 @@
 [![CI](https://github.com/Doge2000/flight_sim/actions/workflows/CI.yml/badge.svg)](https://github.com/Doge2000/flight_sim/actions/workflows/CI.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Doge2000/flight_sim/blob/main/LICENSE)
 
-A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute displacement. The simulator features two interfaces: a legacy matplotlib-based GUI for batch simulation and a modern web-based telemetry dashboard for real-time monitoring.
+A physics-based multi-stage rocket simulator that models thrust curves, drag forces, and parachute deployment. The simulator features two interfaces: a legacy matplotlib-based GUI for batch simulation and a modern web-based telemetry dashboard for real-time monitoring.
 
 ## Demos
 
@@ -154,7 +154,7 @@ sim.exe 2 20 0.15 0.10 15 15 0.10 0.05 10
 ```
 
 ### Configuration File
-Edit `config.txt` to set default rocket parameters:
+`config/config.txt` holds a sample rocket configuration in the same format as the CLI arguments, for reference:
 ```
 2
 20 0.15 0.10 15
@@ -162,6 +162,8 @@ Edit `config.txt` to set default rocket parameters:
 ```
 First line: number of stages
 Following lines: thrust fuel dry_mass burn_time for each stage
+
+> **Note:** This file isn't currently read by `sim.exe`, `server.py`, or `plot.py` — all interfaces pass parameters via CLI arguments/JSON. Editing it won't change simulation behavior.
 
 ## Testing
 
@@ -190,17 +192,18 @@ flight_sim/
 ├── server.py              # FastAPI WebSocket server for real-time telemetry
 ├── plot.py                # Legacy matplotlib-based simulation visualizer
 ├── index.html             # Web-based telemetry dashboard (with Three.js & Plotly.js)
-├── config.txt             # Default rocket configuration file
 ├── requirements.txt       # List of prereqs to install
 ├── sim.csv                # Output telemetry data from simulations (used by legacy GUI)
 ├── sim.exe                # Compiled C++ simulation executable
 ├── PHYSICS.md             # Writeup of the equations of motion and physics models used
 ├── validation_test.py     # Validation tests vs. closed-form analytical solutions
+├── config/
+│   └── config.txt         # Sample rocket configuration (reference only, not read by the code)
 ├── .github/workflows/
 │   └── CI.yml             # GitHub Actions workflow: compile + run tests on every push
 ├── gifs/
-│   └── 0624.gif           # Legacy interface demo
-|   └── webbased.gif       # Web dashboard demo
+│   ├── 0624.gif           # Legacy interface demo
+│   └── webbased.gif       # Web dashboard demo
 ├── LICENSE                # MIT License
 └── README.md              # This file
 ```
@@ -296,4 +299,4 @@ This project is licensed under the MIT License — see [`LICENSE`](LICENSE) for 
 
 ---
 
-*Last updated: July 2026*
+*Last updated: August 2026*
