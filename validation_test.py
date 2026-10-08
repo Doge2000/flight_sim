@@ -72,6 +72,7 @@ def test_poweredascentmatch():
 
         checked+=1
     assert checked > 10, "not enough burn-phase samples were checked --> lower dt or burntime mismatch"
+    print(f"\nmax powered-ascent rel error={maxerror:.6f}")
 
 
 maxabserror = -INFINITY;
@@ -108,11 +109,12 @@ def test_coastphase():
         checked+=1
 
     assert checked > 10, "not enough coast-phase samples were checked"
+    print(f"\nmax coast-phase abs error={maxabserror:.6f}, rel error={maxrelerror:.6f}")
 
 
 
 if __name__ == "__main__":
     test_poweredascentmatch()
-    print("powered ascent test passed with max relative error: " + str(maxerror))
+    print("powered ascent test passed")
     test_coastphase()
-    print("coast phase test passed with max absolute error: " + str(maxabserror) + " and max relative error: " + str(maxrelerror))   
+    print("coast phase test passed")   
