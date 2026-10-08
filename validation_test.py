@@ -1,4 +1,5 @@
 import csv
+from json.encoder import INFINITY
 import math
 import os
 import subprocess
@@ -41,10 +42,12 @@ def rawrows():
         return[[float(x) for x in row] for row in reader]
 
 
-def analyticalv(t, thrust, m0, burnrate):
+def analyticalv(t, thrust, m0, burnrate): #rocket equation
     return (thrust/burnrate) * math.log(m0 / (m0 - burnrate*t)) - g*t
 
+maxerror = -INFINITY;
 def test_poweredascentmatch():
+    
     runsim()
     rows = rawrows()
 
@@ -59,6 +62,8 @@ def test_poweredascentmatch():
         vysim = r[5]
         vyexp = analyticalv(t, thrust, m0, burnrate)
         relerror = abs(vysim-vyexp) / max(abs(vyexp), 1e-9)
+        global maxerror
+        maxerror = max(maxerror, relerror)
         abserror = abs(vysim-vyexp)
         assert relerror < reltolerancev or abserror < abstolerancev, (
             f"t={t:.3f}s: sim vy = {vysim:.6f}, expected = {vyexp:.6f}. "
@@ -69,8 +74,10 @@ def test_poweredascentmatch():
     assert checked > 10, "not enough burn-phase samples were checked --> lower dt or burntime mismatch"
 
 
-
+maxabserror = -INFINITY;
+maxrelerror = -INFINITY;
 def test_coastphase():
+   
     runsim()
     rows = rawrows()
 
@@ -85,9 +92,13 @@ def test_coastphase():
         if dt <= 0:
             continue
         ysim = r[2]
-        yexp = y0 + vy0 *dt - 0.5*g*dt*dt
+        yexp = y0 + vy0 *dt - 0.5*g*dt*dt #ballistic coast
         abserr = abs(ysim-yexp)
         relerr = abs(ysim-yexp) / max(abs(yexp), 1e-9)
+        global maxabserror
+        global maxrelerror
+        maxabserror = max(maxabserror, abserr)
+        maxrelerror = max(maxrelerror, relerr)
 
     
         assert abserr < abstolerancey or relerr < reltolerancey, (
@@ -102,6 +113,6 @@ def test_coastphase():
 
 if __name__ == "__main__":
     test_poweredascentmatch()
-    print("powered ascent test passed")
+    print("powered ascent test passed with max relative error: " + str(maxerror))
     test_coastphase()
-    print("coast phase test passed")   
+    print("coast phase test passed with max absolute error: " + str(maxabserror) + " and max relative error: " + str(maxrelerror))   
